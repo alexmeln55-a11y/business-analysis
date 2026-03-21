@@ -1,7 +1,39 @@
 {
-  "name": "wf.discovery.manual-intake.v1",
+  "id": "wf.discovery.manual-intake.v1",
+  "name": "Discovery — Manual Intake",
+  "version": 1,
   "status": "template-only",
-  "notes": "Placeholder export. Live import pending.",
-  "nodes": [],
-  "connections": {}
+  "purpose": "Accept a manual discovery request from a founder, normalize it, and route it to the opportunity build workflow.",
+  "owner": "product",
+  "trigger": {
+    "type": "manual",
+    "description": "Triggered by a founder submitting a discovery request via the intake form.",
+    "hook_ref": "hook.discovery.manual-intake.v1"
+  },
+  "inputs": {
+    "schema_ref": "discovery-request.v1",
+    "required_fields": ["id", "founder_profile_id", "raw_problem_description", "submitted_at"]
+  },
+  "outputs": {
+    "schema_ref": "normalized-discovery-task.v1",
+    "required_fields": ["id", "discovery_request_id", "founder_profile_id", "normalized_problem", "market_context", "task_status", "routed_to_workflows", "created_at"]
+  },
+  "steps": [
+    { "step": 1, "name": "validate_input", "type": "deterministic", "script_ref": null, "description": "Validate required fields of incoming discovery-request.v1." },
+    { "step": 2, "name": "normalize_request", "type": "deterministic", "description": "Normalize problem description, attach RF market context, generate task ID." },
+    { "step": 3, "name": "route_to_opportunity_build", "type": "deterministic", "description": "Dispatch normalized-discovery-task.v1 to wf.opportunity.build.v1." }
+  ],
+  "linked_agents": [],
+  "linked_skills": [],
+  "retry_policy": {
+    "max_retries": 2,
+    "delay_seconds": 10,
+    "on_failure": "mark_task_failed_and_notify"
+  },
+  "error_handling": {
+    "validation_failure": "reject_with_reason",
+    "normalization_failure": "reject_with_reason",
+    "routing_failure": "mark_task_status_failed"
+  },
+  "notes": "Template only. No live n8n nodes. Import pending after MVP core is complete."
 }

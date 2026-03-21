@@ -1,7 +1,58 @@
 {
-  "name": "wf.opportunity.build.v1",
+  "id": "wf.opportunity.build.v1",
+  "name": "Opportunity — Build",
+  "version": 1,
   "status": "template-only",
-  "notes": "Placeholder export. Live import pending.",
-  "nodes": [],
-  "connections": {}
+  "purpose": "Assemble a fully scored and explained OpportunityCard from a normalized discovery task. Runs profile assessment, signal aggregation, pattern matching, scoring, entry mode selection, and explanation generation.",
+  "owner": "product",
+  "trigger": {
+    "type": "event",
+    "description": "Triggered by wf.discovery.manual-intake.v1 after a normalized-discovery-task.v1 is produced.",
+    "upstream_workflow": "wf.discovery.manual-intake.v1"
+  },
+  "inputs": {
+    "schema_ref": "normalized-discovery-task.v1",
+    "required_fields": ["id", "discovery_request_id", "founder_profile_id", "normalized_problem", "market_context", "task_status", "routed_to_workflows"]
+  },
+  "outputs": {
+    "schema_ref": "opportunity-card.v1",
+    "required_fields": ["id", "title", "problem", "audience", "founder_profile_id", "signal_ids", "scoring_run_id", "pain_score", "willingness_to_pay", "founder_fit_score", "pattern_score", "entry_feasibility_score", "overall_score", "confidence", "risks", "recommended_entry_mode", "first_offer", "first_test", "created_at"]
+  },
+  "steps": [
+    { "step": 1, "name": "load_founder_profile", "type": "deterministic", "description": "Fetch founder-profile.v1 by founder_profile_id." },
+    { "step": 2, "name": "assess_founder_profile", "type": "llm", "agent_ref": "agent.founder-profile.assessor.v1", "description": "Produce founder-fit-assessment.v1 from founder profile." },
+    { "step": 3, "name": "match_market_signals", "type": "deterministic", "description": "Fetch and validate market-signal.normalized.v1 records relevant to the normalized problem." },
+    { "step": 4, "name": "match_business_patterns", "type": "deterministic", "description": "Match business-pattern.v1 records to the opportunity context." },
+    { "step": 5, "name": "assemble_build_input", "type": "deterministic", "description": "Assemble opportunity-build-input.v1 from founder profile, signals, and patterns." },
+    { "step": 6, "name": "prepare_score_input", "type": "deterministic", "description": "Derive opportunity-score-input.v1 from build input." },
+    { "step": 7, "name": "calculate_scores", "type": "deterministic", "script_ref": "script.opportunity.calculate-score.v1", "description": "Compute market, founder fit, pattern, entry feasibility scores and penalties. Produce scoring-run.v1." },
+    { "step": 8, "name": "select_entry_mode", "type": "llm", "agent_ref": "agent.entry-mode.selector.v1", "description": "Produce entry-mode-recommendation.v1 from score input." },
+    { "step": 9, "name": "generate_opportunity_card", "type": "llm", "agent_ref": "agent.opportunity.scorer.v1", "description": "Produce opportunity-card.v1 with explanation layer (summary, why_now, risks, first_offer, first_test)." },
+    { "step": 10, "name": "validate_output_shape", "type": "deterministic", "description": "Validate opportunity-card.v1 against contract. Reject if required fields missing." },
+    { "step": 11, "name": "store_opportunity_card", "type": "deterministic", "description": "Persist opportunity-card.v1 record." }
+  ],
+  "linked_agents": [
+    "agent.founder-profile.assessor.v1",
+    "agent.entry-mode.selector.v1",
+    "agent.opportunity.scorer.v1"
+  ],
+  "linked_skills": [
+    "skill.profile.assess.v1",
+    "skill.entry-mode.selector.v1",
+    "skill.opportunity.scorer.v1"
+  ],
+  "retry_policy": {
+    "max_retries": 1,
+    "delay_seconds": 10,
+    "on_failure": "mark_task_failed_and_notify"
+  },
+  "error_handling": {
+    "profile_load_failure": "abort_with_reason",
+    "signal_match_failure": "continue_with_empty_signals",
+    "pattern_match_failure": "continue_with_empty_patterns",
+    "scoring_failure": "abort_with_reason",
+    "llm_agent_failure": "use_fallback_defined_in_agent",
+    "output_shape_invalid": "reject_and_log"
+  },
+  "notes": "Template only. No live n8n nodes. Import pending after MVP core is complete. This is the primary opportunity production workflow."
 }

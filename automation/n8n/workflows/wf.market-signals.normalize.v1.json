@@ -1,7 +1,40 @@
 {
-  "name": "wf.market-signals.normalize.v1",
+  "id": "wf.market-signals.normalize.v1",
+  "name": "Market Signals — Normalize",
+  "version": 1,
   "status": "template-only",
-  "notes": "Placeholder export. Live import pending.",
-  "nodes": [],
-  "connections": {}
+  "purpose": "Accept a raw market signal, extract structured fields via LLM, validate output shape, and store the normalized signal.",
+  "owner": "product",
+  "trigger": {
+    "type": "event",
+    "description": "Triggered when a new raw market signal is captured (manual entry or external source).",
+    "hook_ref": null
+  },
+  "inputs": {
+    "schema_ref": "market-signal.raw.v1",
+    "required_fields": ["id", "source_type", "raw_text", "captured_at"]
+  },
+  "outputs": {
+    "schema_ref": "market-signal.normalized.v1",
+    "required_fields": ["id", "raw_signal_id", "audience", "problem", "evidence_strength", "frequency", "urgency", "confidence", "normalized_at"]
+  },
+  "steps": [
+    { "step": 1, "name": "validate_raw_input", "type": "deterministic", "script_ref": "script.market-signal.normalize.v1", "description": "Validate required fields and trim input." },
+    { "step": 2, "name": "extract_structured_fields", "type": "llm", "agent_ref": "agent.market-signal.extractor.v1", "description": "Extract audience, problem, workaround, evidence_strength, frequency, urgency, confidence from raw text." },
+    { "step": 3, "name": "validate_output_shape", "type": "deterministic", "description": "Validate normalized output against market-signal.normalized.v1 contract." },
+    { "step": 4, "name": "store_normalized_signal", "type": "deterministic", "description": "Persist normalized signal record." }
+  ],
+  "linked_agents": ["agent.market-signal.extractor.v1"],
+  "linked_skills": ["skill.market-signal.extractor.v1"],
+  "retry_policy": {
+    "max_retries": 1,
+    "delay_seconds": 5,
+    "on_failure": "route_to_manual_review"
+  },
+  "error_handling": {
+    "validation_failure": "reject_with_reason",
+    "llm_extraction_failure": "route_to_manual_review",
+    "output_shape_invalid": "reject_and_log"
+  },
+  "notes": "Template only. No live n8n nodes. Import pending after MVP core is complete."
 }
