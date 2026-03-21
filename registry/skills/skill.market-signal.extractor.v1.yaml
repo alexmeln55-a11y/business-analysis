@@ -1,0 +1,23 @@
+id: skill.market-signal.extractor.v1
+name: Market Signal Extractor
+version: 1
+status: draft
+domain: market-signal
+purpose: Extract structured fields from a raw problem description.
+owner: product
+input_schema_ref: market-signal.raw.v1
+output_schema_ref: market-signal.normalized.v1
+linked_scripts:
+  - script.market-signal.normalize.v1
+linked_instructions:
+  - instruction.common.evidence-first.v1
+  - instruction.common.json-only.v1
+linked_prompts:
+  - prompt.market-signal.extract.v1
+execution_order:
+  - deterministic_pre_validation
+  - bounded_llm_extraction
+  - deterministic_schema_validation
+fallback:
+  type: reject_to_manual_review
+  reason: extraction_failed_or_low_confidence

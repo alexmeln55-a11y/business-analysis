@@ -1,0 +1,7 @@
+{
+  "name": "wf.opportunity.build.v1",
+  "status": "template-only",
+  "notes": "Placeholder export. Live import pending.",
+  "nodes": [],
+  "connections": {}
+}

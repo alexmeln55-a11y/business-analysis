@@ -1,0 +1,25 @@
+id: skill.opportunity.scorer.v1
+name: Opportunity Scorer
+version: 1
+status: draft
+domain: opportunity
+purpose: Combine structured inputs into an opportunity card and scoring run for the RF market.
+owner: product
+input_schema_ref: opportunity.build-input.v1
+output_schema_ref: opportunity.card.v1 + opportunity.scoring-run.v1
+linked_scripts:
+  - script.opportunity.calculate-score.v1
+linked_instructions:
+  - instruction.common.evidence-first.v1
+  - instruction.discovery.rf-context-required.v1
+  - instruction.discovery.lower-confidence-when-weak-evidence.v1
+linked_prompts:
+  - prompt.opportunity.score.v1
+execution_order:
+  - deterministic_pre_validation
+  - bounded_llm_explanation
+  - deterministic_score_calculation
+  - deterministic_schema_validation
+fallback:
+  type: score_without_explanation
+  reason: llm_explanation_failed

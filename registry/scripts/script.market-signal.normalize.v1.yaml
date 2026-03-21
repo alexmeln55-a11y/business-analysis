@@ -1,0 +1,17 @@
+id: script.market-signal.normalize.v1
+name: Market Signal Normalizer
+version: 1
+status: draft
+domain: market-signal
+purpose: Normalize a raw market signal into a structured record.
+input_schema_ref: market-signal.raw.v1
+output_schema_ref: market-signal.normalized.v1
+steps:
+  - trim_input
+  - detect_empty_fields
+  - normalize_text
+  - classify_basic_fields
+  - validate_shape
+notes:
+  - Deterministic only.
+  - No hidden LLM logic.

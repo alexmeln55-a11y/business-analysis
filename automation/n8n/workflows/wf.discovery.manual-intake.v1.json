@@ -1,0 +1,7 @@
+{
+  "name": "wf.discovery.manual-intake.v1",
+  "status": "template-only",
+  "notes": "Placeholder export. Live import pending.",
+  "nodes": [],
+  "connections": {}
+}

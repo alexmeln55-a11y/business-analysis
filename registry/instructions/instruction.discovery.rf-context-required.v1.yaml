@@ -1,0 +1,9 @@
+id: instruction.discovery.rf-context-required.v1
+name: RF Context Required
+version: 1
+status: draft
+purpose: Keep opportunity reasoning grounded in the Russian market.
+rules:
+  - evaluate_rf_market_relevance
+  - mention_rf_constraints_when_material
+  - avoid_global_assumptions_without_mapping

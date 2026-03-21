@@ -1,0 +1,9 @@
+id: instruction.common.json-only.v1
+name: JSON Only
+version: 1
+status: draft
+purpose: Force structured machine-readable output.
+rules:
+  - return_structured_output_only
+  - no_extra_commentary
+  - keep_required_fields_present

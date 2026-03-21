@@ -1,0 +1,21 @@
+id: agent.market-signal.extractor.v1
+name: Market Signal Extractor
+version: 1
+status: draft
+purpose: Produce a structured market signal from raw founder or analyst input.
+owner_workflow: wf.market-signals.normalize.v1
+trigger: workflow_step
+allowed_tools:
+  - prompt.market-signal.extract.v1
+linked_skills:
+  - skill.market-signal.extractor.v1
+instruction_ids:
+  - instruction.common.evidence-first.v1
+  - instruction.common.json-only.v1
+input_schema_ref: market-signal.raw.v1
+output_schema_ref: market-signal.normalized.v1
+fallback: manual_review
+retry_policy:
+  max_retries: 1
+  delay_seconds: 5
+timeout_seconds: 45

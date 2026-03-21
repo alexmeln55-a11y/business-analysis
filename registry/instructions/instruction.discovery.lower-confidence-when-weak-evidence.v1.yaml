@@ -1,0 +1,9 @@
+id: instruction.discovery.lower-confidence-when-weak-evidence.v1
+name: Lower Confidence When Evidence Weak
+version: 1
+status: draft
+purpose: Reduce confidence if data quality is poor.
+rules:
+  - if_inputs_incomplete_reduce_confidence
+  - if_pattern_match_is_weak_reduce_confidence
+  - if_entry_feasibility_is_unknown_flag_uncertainty

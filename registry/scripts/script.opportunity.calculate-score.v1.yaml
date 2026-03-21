@@ -1,0 +1,17 @@
+id: script.opportunity.calculate-score.v1
+name: Opportunity Score Calculator
+version: 1
+status: draft
+domain: opportunity
+purpose: Calculate numeric opportunity scores and penalties.
+input_schema_ref: opportunity.score-input.v1
+output_schema_ref: opportunity.scoring-run.v1
+steps:
+  - calculate_market_score
+  - calculate_founder_fit_score
+  - calculate_pattern_score
+  - calculate_entry_feasibility_score
+  - apply_penalties
+  - compute_final_score
+notes:
+  - Numeric scoring stays deterministic.

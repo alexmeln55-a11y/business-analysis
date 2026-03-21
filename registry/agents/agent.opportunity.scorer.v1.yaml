@@ -1,0 +1,23 @@
+id: agent.opportunity.scorer.v1
+name: Opportunity Scorer
+version: 1
+status: draft
+purpose: Produce explanation and recommendation layers for an RF opportunity card while keeping numeric scoring deterministic.
+owner_workflow: wf.opportunity.build.v1
+trigger: workflow_step
+allowed_tools:
+  - prompt.opportunity.score.v1
+  - deterministic_score_reader
+linked_skills:
+  - skill.opportunity.scorer.v1
+instruction_ids:
+  - instruction.common.evidence-first.v1
+  - instruction.discovery.rf-context-required.v1
+  - instruction.discovery.lower-confidence-when-weak-evidence.v1
+input_schema_ref: opportunity.build-input.v1
+output_schema_ref: opportunity.card.v1
+fallback: score_without_explanation
+retry_policy:
+  max_retries: 1
+  delay_seconds: 5
+timeout_seconds: 60

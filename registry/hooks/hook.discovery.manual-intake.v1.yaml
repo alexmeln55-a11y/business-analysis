@@ -1,0 +1,20 @@
+id: hook.discovery.manual-intake.v1
+name: Manual Opportunity Discovery Intake
+version: 1
+status: draft
+domain: discovery
+purpose: Accept a manual request to evaluate a possible business opportunity for the RF market.
+trigger_type: manual
+owner: product
+input_schema_ref: founder-profile.v1 + discovery-request.v1
+output_schema_ref: normalized-discovery-task.v1
+route_to:
+  - wf.discovery.manual-intake.v1
+  - wf.opportunity.build.v1
+normalization_rules:
+  - attach_rf_market_context
+  - require_founder_identity_reference
+  - create_task_id
+notes:
+  - Hook should not perform reasoning.
+  - Hook only normalizes the event and selects the route.
