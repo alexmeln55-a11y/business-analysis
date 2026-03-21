@@ -1,0 +1,60 @@
+id: entry-mode-recommendation.v1
+version: 1
+status: active
+description: >
+  Output of the entry mode selector skill. Specifies the recommended way
+  to enter the market for a given opportunity, with rationale and constraints.
+
+fields:
+  - name: id
+    type: string
+    required: true
+    description: Unique identifier for this recommendation record.
+
+  - name: opportunity_build_input_id
+    type: string
+    required: true
+    description: >
+      Reference to the opportunity build input this recommendation is based on.
+      ref: opportunity-build-input.v1
+
+  - name: recommended_entry_mode
+    type: string
+    required: true
+    description: The selected entry mode for this opportunity.
+    enum_values:
+      - manual_first
+      - productized_service
+      - lightweight_saas
+      - marketplace
+      - community_led
+      - other
+
+  - name: rationale
+    type: string
+    required: true
+    description: >
+      Short explanation of why this entry mode was selected given
+      the founder profile and opportunity constraints.
+
+  - name: first_offer_hint
+    type: string
+    required: false
+    description: >
+      A concrete starting point for the first offer, derived from the entry mode.
+
+  - name: first_test_hint
+    type: string
+    required: false
+    description: >
+      A concrete starting point for the first demand test.
+
+  - name: confidence
+    type: number
+    required: true
+    description: Confidence in this recommendation, 0.0 to 1.0.
+
+  - name: selected_at
+    type: string
+    required: true
+    description: ISO 8601 datetime when this recommendation was produced.

@@ -1,0 +1,27 @@
+id: skill.entry-mode.selector.v1
+name: Entry Mode Selector
+version: 1
+status: draft
+domain: entry-mode
+purpose: >
+  Select the most feasible market entry mode for a given opportunity.
+  Uses deterministic pre-filtering followed by bounded LLM selection.
+owner: product
+input_schema_ref: opportunity-score-input.v1
+output_schema_ref: entry-mode-recommendation.v1
+linked_scripts:
+  - script.entry-mode.preselect.v1
+linked_instructions:
+  - instruction.common.evidence-first.v1
+  - instruction.common.json-only.v1
+  - instruction.discovery.rf-context-required.v1
+  - instruction.discovery.lower-confidence-when-weak-evidence.v1
+linked_prompts:
+  - prompt.entry-mode.select.v1
+execution_order:
+  - deterministic_pre_filter
+  - bounded_llm_selection
+  - deterministic_schema_validation
+fallback:
+  type: return_top_prefiltered_candidate
+  reason: llm_selection_failed

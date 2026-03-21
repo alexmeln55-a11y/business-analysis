@@ -1,0 +1,59 @@
+id: founder-fit-assessment.v1
+version: 1
+status: active
+description: >
+  Output of the profile assess skill. Captures how well a founder's profile
+  aligns with a given opportunity context. Used as input to scoring.
+
+fields:
+  - name: id
+    type: string
+    required: true
+    description: Unique identifier for this assessment record.
+
+  - name: founder_profile_id
+    type: string
+    required: true
+    description: >
+      ref: founder-profile.v1
+
+  - name: domain_match_score
+    type: number
+    required: true
+    description: >
+      How well founder experience domains match the opportunity area. 0.0 to 1.0.
+
+  - name: distribution_match_score
+    type: number
+    required: true
+    description: >
+      How well founder distribution access fits the opportunity's audience. 0.0 to 1.0.
+
+  - name: model_preference_match
+    type: boolean
+    required: true
+    description: >
+      Whether the opportunity's entry mode aligns with the founder's preferred models.
+
+  - name: time_horizon_feasible
+    type: boolean
+    required: true
+    description: >
+      Whether the founder's time horizon is sufficient for this opportunity type.
+
+  - name: overall_fit_score
+    type: number
+    required: true
+    description: Weighted founder fit score, 0.0 to 1.0.
+
+  - name: fit_flags
+    type: array<string>
+    required: false
+    description: >
+      List of specific mismatches or concerns flagged during assessment.
+      Example: ["sales_cycle_mismatch", "domain_gap_detected"].
+
+  - name: assessed_at
+    type: string
+    required: true
+    description: ISO 8601 datetime when this assessment was produced.

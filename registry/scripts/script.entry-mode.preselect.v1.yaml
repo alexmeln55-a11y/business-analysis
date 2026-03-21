@@ -1,0 +1,20 @@
+id: script.entry-mode.preselect.v1
+name: Entry Mode Pre-Selector
+version: 1
+status: draft
+domain: entry-mode
+purpose: >
+  Deterministically narrow down candidate entry modes based on founder profile
+  constraints before LLM selection. Eliminates modes that are clearly infeasible.
+input_schema_ref: opportunity-score-input.v1
+output_schema_ref: entry-mode-recommendation.v1
+steps:
+  - filter_by_sales_cycle_tolerance
+  - filter_by_manual_work_tolerance
+  - filter_by_time_horizon
+  - filter_by_distribution_access
+  - rank_remaining_candidates
+notes:
+  - Deterministic only. No LLM logic.
+  - Output is a ranked candidate list, not a final selection.
+  - LLM step in skill.entry-mode.selector.v1 picks from this candidate list.

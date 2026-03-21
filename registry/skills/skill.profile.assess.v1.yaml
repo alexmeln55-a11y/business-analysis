@@ -1,0 +1,27 @@
+id: skill.profile.assess.v1
+name: Founder Profile Assessor
+version: 1
+status: draft
+domain: founder-profile
+purpose: >
+  Assess a founder profile against an opportunity context.
+  Produces a structured fit assessment used downstream in scoring.
+owner: product
+input_schema_ref: founder-profile.v1
+output_schema_ref: founder-fit-assessment.v1
+linked_scripts:
+  - script.founder-profile.validate.v1
+linked_instructions:
+  - instruction.common.evidence-first.v1
+  - instruction.common.json-only.v1
+  - instruction.discovery.lower-confidence-when-weak-evidence.v1
+linked_prompts:
+  - prompt.founder-profile.assess.v1
+execution_order:
+  - deterministic_pre_validation
+  - deterministic_score_computation
+  - bounded_llm_assessment
+  - deterministic_schema_validation
+fallback:
+  type: return_scores_without_explanation
+  reason: llm_assessment_failed

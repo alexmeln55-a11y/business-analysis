@@ -1,0 +1,20 @@
+id: script.founder-profile.validate.v1
+name: Founder Profile Validator
+version: 1
+status: draft
+domain: founder-profile
+purpose: Deterministically validate a founder profile and compute pre-scored fit dimensions.
+input_schema_ref: founder-profile.v1
+output_schema_ref: founder-fit-assessment.v1
+steps:
+  - validate_required_fields_present
+  - check_experience_domains_non_empty
+  - check_skills_map_valid
+  - check_distribution_access_non_empty
+  - compute_domain_match_score
+  - compute_distribution_match_score
+  - evaluate_time_horizon_feasibility
+  - compute_overall_fit_score
+notes:
+  - Deterministic only. No LLM logic.
+  - Must run before bounded_llm_assessment in skill.profile.assess.v1.

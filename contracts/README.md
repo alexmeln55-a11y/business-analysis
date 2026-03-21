@@ -27,6 +27,8 @@ Registry assets must reference contract IDs explicitly.
 | normalized-discovery-task.v1 | [normalized-discovery-task.v1.yaml](normalized-discovery-task.v1.yaml) | Normalized routable task produced by the intake hook |
 | opportunity-build-input.v1 | [opportunity-build-input.v1.yaml](opportunity-build-input.v1.yaml) | Composite input for opportunity card building (founder + signals + patterns) |
 | opportunity-score-input.v1 | [opportunity-score-input.v1.yaml](opportunity-score-input.v1.yaml) | Flattened input for deterministic scoring script |
+| founder-fit-assessment.v1 | [founder-fit-assessment.v1.yaml](founder-fit-assessment.v1.yaml) | Output of profile assess skill — scored founder fit dimensions |
+| entry-mode-recommendation.v1 | [entry-mode-recommendation.v1.yaml](entry-mode-recommendation.v1.yaml) | Output of entry mode selector skill — selected mode with rationale |
 
 ## Entity Overview
 
