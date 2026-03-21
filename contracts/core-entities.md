@@ -1,62 +1,43 @@
-# Core Entities v1
+# Core Entities — Overview
 
-## FounderProfile
-- id
-- name
-- experience_domains[]
-- skills{}
-- distribution_access[]
-- preferred_models[]
-- time_horizon_months
-- manual_work_tolerance
-- sales_cycle_tolerance
+This file describes how core entities relate to each other.
+Field definitions live in individual contract files — not here.
 
-## MarketSignal
-- id
-- source_type
-- raw_text
-- audience
-- problem
-- current_workaround
-- evidence_strength
-- frequency
-- urgency
-- confidence
+## Entity Map
 
-## BusinessPattern
-- id
-- pattern_name
-- problem_type
-- target_segment
-- entry_wedge
-- monetization
-- portability_score
-- complexity_score
+```
+FounderProfile
+  └── referenced by: OpportunityCard, ScoringRun
 
-## OpportunityCard
-- id
-- title
-- problem
-- audience
-- pain_score
-- willingness_to_pay
-- founder_fit_score
-- pattern_score
-- entry_feasibility_score
-- risks[]
-- recommended_entry_mode
-- first_offer
-- first_test
-- overall_score
-- confidence
+MarketSignal (raw)
+  └── normalized into: MarketSignal (normalized)
+        └── referenced by: OpportunityCard (via signal_ids)
 
-## ScoringRun
-- id
-- opportunity_id
-- market_score
-- founder_fit_score
-- pattern_score
-- entry_feasibility_score
-- penalty_score
-- formula_version
-- final_score
+BusinessPattern
+  └── referenced by: OpportunityCard (via pattern_ids)
+
+ScoringRun
+  ├── inputs: FounderProfile, MarketSignal (normalized), BusinessPattern
+  └── referenced by: OpportunityCard (via scoring_run_id)
+
+OpportunityCard
+  ├── inputs: FounderProfile, MarketSignal (normalized), BusinessPattern, ScoringRun
+  └── primary output entity of the platform
+
+ValidationTest
+  └── targets any contract for structural verification
+```
+
+## Flow Summary
+
+1. Founder fills in **FounderProfile**
+2. System captures **MarketSignal (raw)** from sources
+3. Script normalizes raw signal into **MarketSignal (normalized)**
+4. System matches **BusinessPattern** records to the signal
+5. Scoring script runs, producing **ScoringRun**
+6. System assembles **OpportunityCard** from all of the above
+
+## Contract Files
+
+All field-level definitions are in `/contracts/*.yaml`.
+See [README.md](README.md) for the full contract index.

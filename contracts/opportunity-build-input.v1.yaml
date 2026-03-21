@@ -1,0 +1,47 @@
+id: opportunity-build-input.v1
+version: 1
+status: active
+description: >
+  Composite input assembled before building an opportunity card.
+  Aggregates the founder profile, matched market signals, and matched
+  business patterns into a single input structure for the opportunity scorer.
+
+fields:
+  - name: id
+    type: string
+    required: true
+    description: Unique identifier for this build input record.
+
+  - name: discovery_task_id
+    type: string
+    required: true
+    description: >
+      Reference to the normalized discovery task that triggered this build.
+      ref: normalized-discovery-task.v1
+
+  - name: founder_profile_id
+    type: string
+    required: true
+    description: >
+      Reference to the founder profile used in this evaluation.
+      ref: founder-profile.v1
+
+  - name: signal_ids
+    type: array<string>
+    required: true
+    description: >
+      List of normalized market signal IDs matched to this opportunity.
+      Minimum 1 signal required.
+      ref: market-signal.normalized.v1
+
+  - name: pattern_ids
+    type: array<string>
+    required: false
+    description: >
+      List of business pattern IDs matched to this opportunity.
+      ref: business-pattern.v1
+
+  - name: assembled_at
+    type: string
+    required: true
+    description: ISO 8601 datetime when this input was assembled.

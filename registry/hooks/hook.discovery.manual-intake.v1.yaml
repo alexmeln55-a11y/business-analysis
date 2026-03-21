@@ -8,6 +8,7 @@ trigger_type: manual
 owner: product
 input_schema_ref: founder-profile.v1 + discovery-request.v1
 output_schema_ref: normalized-discovery-task.v1
+# discovery-request.v1 and normalized-discovery-task.v1 are defined in contracts/
 route_to:
   - wf.discovery.manual-intake.v1
   - wf.opportunity.build.v1

@@ -1,0 +1,88 @@
+id: business-pattern.v1
+version: 1
+status: active
+description: >
+  A proven business pattern from domestic or foreign markets that can be
+  evaluated for applicability to the RF market. Used in pattern scoring
+  within opportunity evaluation.
+
+fields:
+  - name: id
+    type: string
+    required: true
+    description: Unique identifier for this business pattern.
+
+  - name: pattern_name
+    type: string
+    required: true
+    description: Short human-readable name for the pattern.
+
+  - name: problem_type
+    type: string
+    required: true
+    description: >
+      Category of problem this pattern addresses.
+    enum_values:
+      - coordination
+      - information_asymmetry
+      - access
+      - trust
+      - workflow_automation
+      - aggregation
+      - compliance
+      - financing
+      - distribution
+      - other
+
+  - name: target_segment
+    type: string
+    required: true
+    description: >
+      The market segment this pattern has proven successful in.
+      Example: "SMB logistics", "independent contractors", "retail buyers".
+
+  - name: entry_wedge
+    type: string
+    required: true
+    description: >
+      The initial narrow use case or audience used to enter the market.
+      Example: "free tool for one pain point, expand via word of mouth".
+
+  - name: monetization
+    type: string
+    required: true
+    description: Primary monetization model of this pattern.
+    enum_values:
+      - subscription
+      - transaction_fee
+      - marketplace_commission
+      - services
+      - freemium_upsell
+      - licensing
+      - other
+
+  - name: portability_score
+    type: integer
+    required: true
+    description: >
+      How portable this pattern is to the RF market, 1 to 5.
+      1 = very hard to port, 5 = directly applicable.
+
+  - name: complexity_score
+    type: integer
+    required: true
+    description: >
+      How complex this pattern is to execute, 1 to 5.
+      1 = simple, 5 = very complex.
+
+  - name: source_market
+    type: string
+    required: false
+    description: >
+      Country or region where this pattern was originally observed.
+      Example: "US", "EU", "CN".
+
+  - name: notes
+    type: string
+    required: false
+    description: Additional context or caveats about this pattern.

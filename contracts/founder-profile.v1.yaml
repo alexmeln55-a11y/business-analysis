@@ -1,0 +1,75 @@
+id: founder-profile.v1
+version: 1
+status: active
+description: >
+  Profile of the founder or user evaluating business opportunities.
+  Used as input for founder fit scoring and opportunity filtering.
+
+fields:
+  - name: id
+    type: string
+    required: true
+    description: Unique identifier for this founder profile.
+
+  - name: name
+    type: string
+    required: true
+    description: Display name of the founder.
+
+  - name: experience_domains
+    type: array<string>
+    required: true
+    description: >
+      List of domain areas where the founder has meaningful experience.
+      Example: ["b2b-saas", "logistics", "retail"].
+
+  - name: skills
+    type: map<string, string>
+    required: true
+    description: >
+      Key skills and self-assessed proficiency level.
+      Keys are skill names, values are one of: beginner, intermediate, strong, expert.
+    enum_values:
+      - beginner
+      - intermediate
+      - strong
+      - expert
+
+  - name: distribution_access
+    type: array<string>
+    required: true
+    description: >
+      Channels the founder can realistically use to reach customers.
+      Example: ["telegram", "cold-outreach", "existing-client-base"].
+
+  - name: preferred_models
+    type: array<string>
+    required: false
+    description: >
+      Business models the founder prefers or has experience with.
+      Example: ["subscription", "marketplace", "services"].
+
+  - name: time_horizon_months
+    type: integer
+    required: true
+    description: How many months the founder is willing to invest before expecting revenue.
+
+  - name: manual_work_tolerance
+    type: string
+    required: true
+    description: >
+      Willingness to do manual, non-scalable work in early stages.
+    enum_values:
+      - low
+      - medium
+      - high
+
+  - name: sales_cycle_tolerance
+    type: string
+    required: true
+    description: >
+      Tolerance for long B2B sales cycles.
+    enum_values:
+      - short_only
+      - medium_ok
+      - long_ok

@@ -1,0 +1,96 @@
+id: opportunity-score-input.v1
+version: 1
+status: active
+description: >
+  Input to the deterministic scoring script. Derived from opportunity-build-input.v1
+  but contains only the fields needed to compute numeric scores.
+  Scoring must be reproducible from this input alone.
+
+fields:
+  - name: id
+    type: string
+    required: true
+    description: Unique identifier for this score input record.
+
+  - name: build_input_id
+    type: string
+    required: true
+    description: >
+      Reference to the opportunity build input this was derived from.
+      ref: opportunity-build-input.v1
+
+  - name: founder_profile_id
+    type: string
+    required: true
+    description: >
+      ref: founder-profile.v1
+
+  - name: signal_evidence_strength
+    type: string
+    required: true
+    description: >
+      Aggregated evidence strength across matched signals.
+    enum_values:
+      - anecdotal
+      - weak
+      - moderate
+      - strong
+
+  - name: signal_frequency
+    type: string
+    required: true
+    description: >
+      Aggregated frequency signal across matched signals.
+    enum_values:
+      - rare
+      - occasional
+      - frequent
+      - pervasive
+
+  - name: signal_urgency
+    type: string
+    required: true
+    description: >
+      Aggregated urgency signal across matched signals.
+    enum_values:
+      - low
+      - medium
+      - high
+      - critical
+
+  - name: pattern_portability_avg
+    type: number
+    required: false
+    description: >
+      Average portability score of matched business patterns, 1.0 to 5.0.
+      Null if no patterns matched.
+
+  - name: pattern_complexity_avg
+    type: number
+    required: false
+    description: >
+      Average complexity score of matched business patterns, 1.0 to 5.0.
+      Null if no patterns matched.
+
+  - name: founder_time_horizon_months
+    type: integer
+    required: true
+    description: From the founder profile — used to assess entry feasibility.
+
+  - name: founder_manual_work_tolerance
+    type: string
+    required: true
+    description: From the founder profile.
+    enum_values:
+      - low
+      - medium
+      - high
+
+  - name: founder_sales_cycle_tolerance
+    type: string
+    required: true
+    description: From the founder profile.
+    enum_values:
+      - short_only
+      - medium_ok
+      - long_ok

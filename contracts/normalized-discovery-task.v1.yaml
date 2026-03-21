@@ -1,0 +1,61 @@
+id: normalized-discovery-task.v1
+version: 1
+status: active
+description: >
+  A normalized, routable task produced from a discovery-request.
+  Created by hook.discovery.manual-intake.v1 after normalizing and validating
+  the raw request. This is the canonical input passed to downstream workflows.
+
+fields:
+  - name: id
+    type: string
+    required: true
+    description: Unique identifier for this normalized task.
+
+  - name: discovery_request_id
+    type: string
+    required: true
+    description: >
+      Reference to the source discovery request.
+      ref: discovery-request.v1
+
+  - name: founder_profile_id
+    type: string
+    required: true
+    description: >
+      Reference to the founder profile for this task.
+      ref: founder-profile.v1
+
+  - name: normalized_problem
+    type: string
+    required: true
+    description: Cleaned and normalized version of the raw problem description.
+
+  - name: market_context
+    type: string
+    required: true
+    description: >
+      RF market context attached during normalization.
+      Always set to "rf" at this stage.
+
+  - name: task_status
+    type: string
+    required: true
+    description: Current processing status of this task.
+    enum_values:
+      - pending
+      - in_progress
+      - completed
+      - failed
+
+  - name: routed_to_workflows
+    type: array<string>
+    required: true
+    description: >
+      List of workflow IDs this task was dispatched to.
+      Example: ["wf.discovery.manual-intake.v1", "wf.opportunity.build.v1"].
+
+  - name: created_at
+    type: string
+    required: true
+    description: ISO 8601 datetime when this normalized task was created.

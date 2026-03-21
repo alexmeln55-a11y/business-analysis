@@ -14,8 +14,8 @@ instruction_ids:
   - instruction.common.evidence-first.v1
   - instruction.discovery.rf-context-required.v1
   - instruction.discovery.lower-confidence-when-weak-evidence.v1
-input_schema_ref: opportunity.build-input.v1
-output_schema_ref: opportunity.card.v1
+input_schema_ref: opportunity-build-input.v1
+output_schema_ref: opportunity-card.v1
 fallback: score_without_explanation
 retry_policy:
   max_retries: 1

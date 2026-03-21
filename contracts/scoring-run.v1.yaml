@@ -1,0 +1,78 @@
+id: scoring-run.v1
+version: 1
+status: active
+description: >
+  Records a single execution of the scoring logic against an opportunity.
+  Stores all component scores, penalties, formula version, and final result.
+  Scoring is deterministic. The scoring run must be reproducible from its inputs.
+
+fields:
+  - name: id
+    type: string
+    required: true
+    description: Unique identifier for this scoring run.
+
+  - name: opportunity_id
+    type: string
+    required: true
+    description: >
+      Reference to the opportunity card this scoring run belongs to.
+      ref: opportunity-card.v1
+
+  - name: founder_profile_id
+    type: string
+    required: true
+    description: >
+      Reference to the founder profile used as input for this run.
+      ref: founder-profile.v1
+
+  - name: market_score
+    type: number
+    required: true
+    description: Component score for market pain, 0.0 to 1.0.
+
+  - name: founder_fit_score
+    type: number
+    required: true
+    description: Component score for founder fit, 0.0 to 1.0.
+
+  - name: pattern_score
+    type: number
+    required: true
+    description: Component score for matched proven patterns, 0.0 to 1.0.
+
+  - name: entry_feasibility_score
+    type: number
+    required: true
+    description: Component score for entry feasibility, 0.0 to 1.0.
+
+  - name: penalty_score
+    type: number
+    required: true
+    description: >
+      Total penalty deducted from the score.
+      Negative number or zero. Applied after positives are summed.
+
+  - name: penalty_reasons
+    type: array<string>
+    required: false
+    description: List of reasons penalties were applied.
+
+  - name: formula_version
+    type: string
+    required: true
+    description: >
+      Version identifier of the scoring formula used.
+      Example: "scoring-v1". Must match the formula definition in docs.
+
+  - name: final_score
+    type: number
+    required: true
+    description: >
+      Final computed score: sum of weighted components minus penalties.
+      Range: 0.0 to 1.0.
+
+  - name: scored_at
+    type: string
+    required: true
+    description: ISO 8601 datetime when this scoring run was executed.

@@ -5,8 +5,8 @@ status: draft
 domain: opportunity
 purpose: Combine structured inputs into an opportunity card and scoring run for the RF market.
 owner: product
-input_schema_ref: opportunity.build-input.v1
-output_schema_ref: opportunity.card.v1 + opportunity.scoring-run.v1
+input_schema_ref: opportunity-build-input.v1
+output_schema_ref: opportunity-card.v1 + scoring-run.v1
 linked_scripts:
   - script.opportunity.calculate-score.v1
 linked_instructions:

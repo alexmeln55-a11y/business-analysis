@@ -1,0 +1,66 @@
+id: validation-test.v1
+version: 1
+status: active
+description: >
+  A structured record representing a single validation test case for a contract.
+  Used to verify that a contract definition is complete, that required fields
+  are enforceable, and that enum constraints are respected.
+  Validation tests are repo-managed and must be run before a contract is promoted
+  from draft to active.
+
+fields:
+  - name: id
+    type: string
+    required: true
+    description: Unique identifier for this validation test case.
+
+  - name: target_contract_id
+    type: string
+    required: true
+    description: >
+      The contract this test case targets.
+      Example: "founder-profile.v1".
+
+  - name: test_name
+    type: string
+    required: true
+    description: Short human-readable name for this test case.
+
+  - name: test_type
+    type: string
+    required: true
+    description: What kind of validation this test performs.
+    enum_values:
+      - required_fields_present
+      - enum_value_valid
+      - type_check
+      - ref_resolvable
+      - minimal_valid_object
+
+  - name: input_description
+    type: string
+    required: true
+    description: >
+      Description of the input object or scenario being tested.
+      Should be specific enough to reproduce the test without ambiguity.
+
+  - name: expected_outcome
+    type: string
+    required: true
+    description: >
+      What a passing result looks like for this test.
+    enum_values:
+      - valid
+      - invalid
+      - error
+
+  - name: failure_reason
+    type: string
+    required: false
+    description: >
+      If expected_outcome is invalid or error, describe why the input should fail.
+
+  - name: notes
+    type: string
+    required: false
+    description: Additional context or edge cases covered by this test.

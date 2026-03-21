@@ -1,0 +1,133 @@
+id: opportunity-card.v1
+version: 1
+status: active
+description: >
+  The central output entity of the platform. Represents a scored and
+  explained business opportunity for the RF market. Built from founder
+  profile, market signals, business patterns, and scoring run output.
+
+fields:
+  - name: id
+    type: string
+    required: true
+    description: Unique identifier for this opportunity card.
+
+  - name: title
+    type: string
+    required: true
+    description: Short human-readable title of the opportunity.
+
+  - name: problem
+    type: string
+    required: true
+    description: Clear statement of the market problem this opportunity addresses.
+
+  - name: audience
+    type: string
+    required: true
+    description: Target audience or customer segment for this opportunity.
+
+  - name: founder_profile_id
+    type: string
+    required: true
+    description: >
+      Reference to the founder profile this opportunity was evaluated for.
+      ref: founder-profile.v1
+
+  - name: signal_ids
+    type: array<string>
+    required: true
+    description: >
+      List of normalized market signal IDs that support this opportunity.
+      ref: market-signal.normalized.v1
+
+  - name: pattern_ids
+    type: array<string>
+    required: false
+    description: >
+      List of business pattern IDs matched to this opportunity.
+      ref: business-pattern.v1
+
+  - name: scoring_run_id
+    type: string
+    required: true
+    description: >
+      Reference to the scoring run that produced the numeric scores.
+      ref: scoring-run.v1
+
+  - name: pain_score
+    type: number
+    required: true
+    description: Numeric score for market pain intensity, 0.0 to 1.0.
+
+  - name: willingness_to_pay
+    type: string
+    required: true
+    description: Estimated willingness to pay of the target audience.
+    enum_values:
+      - low
+      - medium
+      - high
+      - very_high
+
+  - name: founder_fit_score
+    type: number
+    required: true
+    description: Numeric score for how well this opportunity fits the founder profile, 0.0 to 1.0.
+
+  - name: pattern_score
+    type: number
+    required: true
+    description: Numeric score based on matched proven patterns, 0.0 to 1.0.
+
+  - name: entry_feasibility_score
+    type: number
+    required: true
+    description: Numeric score for how feasible entry is given constraints, 0.0 to 1.0.
+
+  - name: overall_score
+    type: number
+    required: true
+    description: Final weighted opportunity score, 0.0 to 1.0.
+
+  - name: confidence
+    type: number
+    required: true
+    description: >
+      Overall confidence in the opportunity assessment, 0.0 to 1.0.
+      Reduced when evidence is weak or founder fit is uncertain.
+
+  - name: risks
+    type: array<string>
+    required: true
+    description: List of key risks identified for this opportunity.
+
+  - name: recommended_entry_mode
+    type: string
+    required: true
+    description: >
+      Recommended way to enter this market.
+    enum_values:
+      - manual_first
+      - productized_service
+      - lightweight_saas
+      - marketplace
+      - community_led
+      - other
+
+  - name: first_offer
+    type: string
+    required: true
+    description: >
+      Concrete description of what the first offer to potential customers should be.
+
+  - name: first_test
+    type: string
+    required: true
+    description: >
+      Description of the minimal test to validate demand before building.
+
+  - name: created_at
+    type: string
+    required: true
+    description: ISO 8601 datetime when this opportunity card was created.
