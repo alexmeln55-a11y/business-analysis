@@ -134,8 +134,10 @@ UI and product supporting documentation.
 | File | Purpose |
 |------|---------|
 | ui-principles.md | Visual style rules — warm dark editorial |
-| ui-tokens.md | Design tokens — colors, spacing, radius, shadows |
-| page-templates.md | Screen-level layout and component descriptions |
+| ui-tokens.md | Design tokens — colors, typography, spacing, radius, shadows |
+| page-templates.md | Screen-level layout, components, and required data fields |
+| user-flows.md | 4 MVP user scenarios — what user does, what system does |
+| scoring-v1.md | Scoring formula v1 — components, weights, penalties, thresholds |
 | repo-map.md | This file |
 
 ---

@@ -18,3 +18,8 @@
 - `plan/n8n.md`
 - `plan/operating-rules.md`
 - `plan/prompts.md`
+
+Карта репозитория: `docs/repo-map.md`
+Контракты данных: `contracts/README.md`
+Пользовательские сценарии: `docs/user-flows.md`
+Скоринг: `docs/scoring-v1.md`
