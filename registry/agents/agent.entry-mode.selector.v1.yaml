@@ -1,0 +1,28 @@
+id: agent.entry-mode.selector.v1
+name: Entry Mode Selector
+version: 1
+status: draft
+purpose: >
+  Select the most feasible market entry mode for a given opportunity.
+  Deterministic pre-filter eliminates infeasible modes; LLM selects from remaining candidates.
+owner_workflow: wf.opportunity.build.v1
+trigger: workflow_step
+allowed_tools:
+  - prompt.entry-mode.select.v1
+  - deterministic_candidate_list_reader
+linked_skills:
+  - skill.entry-mode.selector.v1
+instruction_ids:
+  - instruction.common.evidence-first.v1
+  - instruction.common.json-only.v1
+  - instruction.common.no-invention.v1
+  - instruction.common.validate-required-fields.v1
+  - instruction.discovery.rf-context-required.v1
+  - instruction.discovery.lower-confidence-when-weak-evidence.v1
+input_schema_ref: opportunity-score-input.v1
+output_schema_ref: entry-mode-recommendation.v1
+fallback: return_top_prefiltered_candidate
+retry_policy:
+  max_retries: 1
+  delay_seconds: 5
+timeout_seconds: 45

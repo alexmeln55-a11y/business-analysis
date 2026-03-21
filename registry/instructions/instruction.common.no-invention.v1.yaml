@@ -1,0 +1,13 @@
+id: instruction.common.no-invention.v1
+name: No Invention
+version: 1
+status: active
+purpose: >
+  Prevent the LLM from generating facts, scores, or conclusions
+  that are not grounded in the provided structured inputs.
+rules:
+  - do_not_generate_facts_absent_from_input
+  - do_not_assume_audience_or_problem_not_stated
+  - do_not_invent_market_data_or_competitor_info
+  - if_input_is_insufficient_say_so_and_reduce_confidence
+  - never_fill_empty_fields_with_plausible_sounding_content

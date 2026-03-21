@@ -1,0 +1,13 @@
+id: instruction.common.validate-required-fields.v1
+name: Validate Required Fields
+version: 1
+status: active
+purpose: >
+  Ensure output always contains all required fields defined in the output contract.
+  Never return partial output silently.
+rules:
+  - all_required_fields_must_be_present_in_output
+  - if_a_required_field_cannot_be_computed_return_null_with_reason
+  - do_not_omit_fields_to_shorten_output
+  - do_not_rename_fields_from_the_contract
+  - output_shape_must_match_the_referenced_contract_exactly

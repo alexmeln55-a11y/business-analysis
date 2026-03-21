@@ -1,0 +1,27 @@
+id: agent.founder-profile.assessor.v1
+name: Founder Profile Assessor
+version: 1
+status: draft
+purpose: >
+  Assess a founder profile against an opportunity context.
+  Deterministic scores are computed first; LLM adds fit flags and explanations.
+owner_workflow: wf.opportunity.build.v1
+trigger: workflow_step
+allowed_tools:
+  - prompt.founder-profile.assess.v1
+  - deterministic_score_reader
+linked_skills:
+  - skill.profile.assess.v1
+instruction_ids:
+  - instruction.common.evidence-first.v1
+  - instruction.common.json-only.v1
+  - instruction.common.no-invention.v1
+  - instruction.common.validate-required-fields.v1
+  - instruction.discovery.lower-confidence-when-weak-evidence.v1
+input_schema_ref: founder-profile.v1
+output_schema_ref: founder-fit-assessment.v1
+fallback: return_scores_without_explanation
+retry_policy:
+  max_retries: 1
+  delay_seconds: 5
+timeout_seconds: 45
