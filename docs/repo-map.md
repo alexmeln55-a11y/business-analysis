@@ -28,6 +28,7 @@ If something is not in this map and not in the repo, it does not exist.
 | requirements.md | Business, product, and system requirements |
 | strategy.md | Product thesis, core entities, MVP architecture |
 | chunks.md | Implementation chunk plan with done criteria |
+| post-mvp-infra.md | Post-MVP infrastructure plan for RF production |
 | n8n.md | n8n rules, workflow rules, agent rules |
 | operating-rules.md | Session rules, git rules, rollback mindset |
 | prompts.md | Prompt templates for Claude Code sessions |

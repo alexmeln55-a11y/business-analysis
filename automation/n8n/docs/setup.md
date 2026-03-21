@@ -1,14 +1,67 @@
-# n8n Local Setup
+# n8n — Локальная установка
 
-Mode allowed for this project:
-- self-hosted / downloaded
-- local or RF-hosted later
-- free/community usage only
+## Правила проекта
+- Только self-hosted / community edition (бесплатная).
+- Никакой платной n8n cloud.
+- Для MVP подходит локальный запуск на своей машине.
+- Продовый запуск — только на серверах в РФ (обсуждается после MVP).
 
-MVP notes:
-- local setup is acceptable for MVP
-- future production deployment must remain inside Russian infrastructure
-- do not depend on paid n8n cloud
+---
 
-Live access rule:
-If Claude does not have real access to the local/self-hosted n8n instance, Claude must not claim that a workflow was imported or activated.
+## Установка n8n локально
+
+### Вариант 1 — через npx (самый быстрый старт)
+
+```bash
+npx n8n
+```
+
+n8n запустится на http://localhost:5678
+Данные сохраняются локально в папке ~/.n8n
+
+### Вариант 2 — через npm (постоянная установка)
+
+```bash
+npm install -g n8n
+n8n start
+```
+
+### Вариант 3 — через Docker
+
+```bash
+docker run -it --rm \
+  --name n8n \
+  -p 5678:5678 \
+  -v ~/.n8n:/home/node/.n8n \
+  n8nio/n8n
+```
+
+---
+
+## После запуска
+
+1. Открыть http://localhost:5678
+2. Создать аккаунт (только локальный, данные не уходят в облако)
+3. Импортировать workflow из репозитория — см. `import-export.md`
+
+---
+
+## Переменные окружения
+
+Не хранить секреты в workflow JSON или в репо.
+Все чувствительные значения — через переменные окружения n8n.
+
+Пример настройки переменных в n8n:
+Settings → Variables → добавить нужные значения
+
+Переменные, которые понадобятся (названия — ориентировочные):
+- `CLAUDE_API_KEY` — ключ доступа к LLM
+- `DB_CONNECTION` — строка подключения к базе данных (после MVP)
+
+---
+
+## Важно
+
+n8n UI не является источником правды.
+Все изменения workflow должны быть экспортированы обратно в репо.
+Подробнее — в `import-export.md`.

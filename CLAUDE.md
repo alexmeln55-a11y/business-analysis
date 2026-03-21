@@ -19,7 +19,7 @@
 - Никаких серверов вне РФ для продового контура.
 - n8n только self-hosted / downloaded / free community.
 - Никакой paid n8n cloud.
-- Финальный стек сейчас не зафиксирован.
+- MVP-стек зафиксирован: Next.js + SQLite. Финальный продовый стек — после MVP.
 - Сначала собираем MVP.
 - Базы, продовые серверы, финальную инфраструктуру и hardening обсуждаем только после MVP.
 - Репозиторий — единственный source of truth.
@@ -122,12 +122,10 @@ warm dark editorial product UI
 
 Всегда сначала прочитай:
 - /CLAUDE.md
-- /plan/requirements.md
-- /plan/strategy.md
+- /plan/current-status.md  ← начни отсюда, здесь текущее состояние
 - /plan/chunks.md
 - /plan/n8n.md
 - /plan/operating-rules.md
-- /plan/prompts.md
 
 Потом коротко перескажи:
 - как ты понял проект

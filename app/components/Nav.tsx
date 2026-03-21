@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 
 const links = [
   { href: '/profile',       label: 'Профиль' },
+  { href: '/discovery',     label: 'Запрос' },
   { href: '/signals',       label: 'Сигналы' },
   { href: '/opportunities', label: 'Возможности' },
 ]
@@ -13,28 +14,23 @@ export default function Nav() {
   const pathname = usePathname()
 
   return (
-    <nav
-      style={{
-        borderBottom: '1px solid rgba(244,237,227,0.08)',
-        backgroundColor: '#0B0908',
-        position: 'sticky',
-        top: 0,
-        zIndex: 50,
-      }}
-    >
-      <div
-        style={{
-          maxWidth: '1100px',
-          margin: '0 auto',
-          padding: '0 24px',
-          height: '56px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        {/* Brand */}
-        <Link href="/opportunities" style={{ textDecoration: 'none' }}>
+    <nav style={{
+      borderBottom: '1px solid rgba(244,237,227,0.08)',
+      backgroundColor: '#0B0908',
+      position: 'sticky',
+      top: 0,
+      zIndex: 50,
+    }}>
+      <div style={{
+        maxWidth: '1100px',
+        margin: '0 auto',
+        padding: '0 24px',
+        height: '56px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
+        <Link href="/" style={{ textDecoration: 'none' }}>
           <span style={{
             fontSize: '14px',
             fontWeight: 600,
@@ -45,8 +41,7 @@ export default function Nav() {
           </span>
         </Link>
 
-        {/* Links */}
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '4px' }}>
           {links.map(({ href, label }) => {
             const active = pathname.startsWith(href)
             return (
