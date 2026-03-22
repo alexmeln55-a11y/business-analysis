@@ -16,8 +16,9 @@ const wtpLabel: Record<string, string> = {
   low: 'Низкая', medium: 'Средняя', high: 'Высокая', very_high: 'Очень высокая',
 }
 
-export default function OpportunityDetailPage({ params }: { params: { id: string } }) {
-  const opp = seedOpportunities.find(o => o.id === params.id)
+export default async function OpportunityDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const opp = seedOpportunities.find(o => o.id === id)
   if (!opp) notFound()
 
   const detail = mockOppDetails[opp.id]

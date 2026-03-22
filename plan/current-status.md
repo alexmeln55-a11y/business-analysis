@@ -21,6 +21,7 @@
 | UI-01 | Next.js скелет: 4 экрана + навигация + UI-токены + seed | ✅ |
 | UI-02 | Маршруты исправлены: / — dashboard, /discovery — запрос | ✅ |
 | UI-03 | Смысловой слой: 4 фильтра на detail-странице, shortlist_reason в списке | ✅ |
+| UI-04 | Диагностика основателя: /assessment + /assessment/founder-intake + /assessment/overview | ✅ |
 
 ---
 
@@ -32,6 +33,9 @@
 - Данные — из seed-файла (`app/lib/seed.ts`) + mock-details (`app/lib/mock-details.ts`), SQLite ещё не подключён
 - Detail-страница `/opportunities/[id]` показывает все 4 фильтра с разбором, foreign patterns, shortlist_reason
 - Список `/opportunities` показывает shortlist_reason под заголовком карточки
+- `/assessment` — обзор 6 блоков диагностики, блок 1 активен
+- `/assessment/founder-intake` — форма блока 1 (4 секции × 4 вопроса), autosave в localStorage
+- `/assessment/overview` — итог блока 1 с 5 derived insights, CTA
 - Формы и кнопки отрисованы, но задизейблены (логика в следующем chunk)
 
 ---
