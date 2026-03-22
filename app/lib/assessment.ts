@@ -1,5 +1,5 @@
 // Shared types and constants for assessment module.
-// Imported by founder-intake, ese, hexaco, values, and overview pages.
+// Imported by founder-intake, ese, hexaco, values, identity, and overview pages.
 
 // ── Block 1: Founder Intake ───────────────────────────────────
 
@@ -163,5 +163,92 @@ export function calcValuesScores(a: ValuesAnswers): ValuesScores {
     security: clusters[4],
     hedonism: clusters[5],
     overall: avg(...clusters.filter(v => v > 0)),
+  }
+}
+
+// ── Block 5: Identity (Fauchart & Gruber) ─────────────────────
+
+export interface IdentityAnswers {
+  // Darwinian
+  q1: number; q2: number; q3: number; q4: number; q5: number
+  // Communitarian
+  q6: number; q7: number; q8: number; q9: number; q10: number
+  // Missionary
+  q11: number; q12: number; q13: number; q14: number; q15: number
+}
+
+export type IdentityType = 'darwinian' | 'communitarian' | 'missionary'
+
+export interface IdentityScores {
+  darwinian: number
+  communitarian: number
+  missionary: number
+  dominant: IdentityType
+  secondary: IdentityType | null
+  isMixed: boolean
+}
+
+export const IDENTITY_STORAGE_KEY = 'identity_v1'
+
+export function calcIdentityScores(a: IdentityAnswers): IdentityScores {
+  const avg = (...vals: number[]) => {
+    const filled = vals.filter(v => v > 0)
+    return filled.length ? filled.reduce((s, v) => s + v, 0) / filled.length : 0
+  }
+  const darwinian = avg(a.q1, a.q2, a.q3, a.q4, a.q5)
+  const communitarian = avg(a.q6, a.q7, a.q8, a.q9, a.q10)
+  const missionary = avg(a.q11, a.q12, a.q13, a.q14, a.q15)
+
+  const sorted = [
+    { key: 'darwinian' as IdentityType, val: darwinian },
+    { key: 'communitarian' as IdentityType, val: communitarian },
+    { key: 'missionary' as IdentityType, val: missionary },
+  ].filter(s => s.val > 0).sort((a, b) => b.val - a.val)
+
+  const isMixed = sorted.length >= 2 && Math.abs(sorted[0].val - sorted[1].val) <= 0.3
+
+  return {
+    darwinian,
+    communitarian,
+    missionary,
+    dominant: sorted[0]?.key ?? 'darwinian',
+    secondary: sorted.length >= 2 ? sorted[1].key : null,
+    isMixed,
+  }
+}
+
+// ── Block 6: EntreComp (MVP slice) ────────────────────────────
+
+export interface EntreCompAnswers {
+  // Ideation & Opportunity
+  q1: number; q2: number; q3: number
+  // Action under uncertainty
+  q4: number; q5: number; q6: number
+  // Ethical orientation
+  q7: number; q8: number; q9: number
+}
+
+export interface EntreCompScores {
+  ideation_opportunity: number
+  action_under_uncertainty: number
+  ethical_orientation: number
+  overall: number
+}
+
+export const ENTRECOMP_STORAGE_KEY = 'entrecomp_v1'
+
+export function calcEntreCompScores(a: EntreCompAnswers): EntreCompScores {
+  const avg = (...vals: number[]) => {
+    const filled = vals.filter(v => v > 0)
+    return filled.length ? filled.reduce((s, v) => s + v, 0) / filled.length : 0
+  }
+  const ideation = avg(a.q1, a.q2, a.q3)
+  const action = avg(a.q4, a.q5, a.q6)
+  const ethics = avg(a.q7, a.q8, a.q9)
+  return {
+    ideation_opportunity: ideation,
+    action_under_uncertainty: action,
+    ethical_orientation: ethics,
+    overall: avg(...[ideation, action, ethics].filter(v => v > 0)),
   }
 }

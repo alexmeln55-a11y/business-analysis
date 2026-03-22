@@ -1,6 +1,6 @@
 # Текущее состояние проекта
 
-Обновлено: 2026-03-22
+Обновлено: 2026-03-23
 
 ---
 
@@ -25,6 +25,8 @@
 | Assessment-02 | Блок 2 ESE: /assessment/ese, динамический статус блоков, ESE summary в overview | ✅ |
 | Assessment-03 | Блок 3 HEXACO: /assessment/hexaco, 6 факторов × 4 вопроса, шкала 1–5, reverse scoring q8, HEXACO summary в overview | ✅ |
 | Assessment-04 | Блок 4 Values: /assessment/values, 6 кластеров × 3 вопроса, шкала 1–6, reverse q12/q15, Values summary в overview | ✅ |
+| Assessment-05 | Блок 5 Identity: /assessment/identity, 3 типа × 5 вопросов (Fauchart & Gruber), шкала 1–5, dominant+secondary, Identity summary в overview | ✅ |
+| Assessment-06 | Блок 6 EntreComp: /assessment/entrecomp, 3 компетенции × 3 вопроса, шкала 1–5, EntreComp summary в overview | ✅ |
 
 ---
 
@@ -36,14 +38,14 @@
 - Данные — из seed-файла (`app/lib/seed.ts`) + mock-details (`app/lib/mock-details.ts`), SQLite ещё не подключён
 - Detail-страница `/opportunities/[id]` показывает все 4 фильтра с разбором, foreign patterns, shortlist_reason
 - Список `/opportunities` показывает shortlist_reason под заголовком карточки
-- `/assessment` — обзор 6 блоков диагностики, блок 1 активен
+- `/assessment` — обзор 6 блоков диагностики, все 6 блоков активны
 - `/assessment/founder-intake` — форма блока 1 (4 секции × 4 вопроса), autosave в localStorage
 - `/assessment/overview` — итог блока 1 с 5 derived insights, CTA
 - Формы и кнопки отрисованы, но задизейблены (логика в следующем chunk)
 
 ---
 
-## Следующий chunk: SQLite + реальные data models (был запланирован ранее)
+## Следующий chunk: SQLite + реальные data models (или другое по приоритету)
 
 **Цель:** заменить seed-данные на реальную БД. Профиль основателя сохраняется и читается из SQLite.
 

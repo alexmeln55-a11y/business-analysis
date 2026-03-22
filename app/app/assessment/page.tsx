@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { INTAKE_STORAGE_KEY, ESE_STORAGE_KEY, HEXACO_STORAGE_KEY, VALUES_STORAGE_KEY } from '@/lib/assessment'
+import { INTAKE_STORAGE_KEY, ESE_STORAGE_KEY, HEXACO_STORAGE_KEY, VALUES_STORAGE_KEY, IDENTITY_STORAGE_KEY, ENTRECOMP_STORAGE_KEY } from '@/lib/assessment'
 
 type BlockStatus = 'completed' | 'available' | 'upcoming'
 
@@ -38,9 +38,18 @@ const BLOCKS: BlockDef[] = [
     description: 'Оценка ценностей, которые влияют на стиль бизнеса и границы допустимого.',
     href: '/assessment/values',
   },
-  { number: 4, title: 'Конкурентный контекст', description: 'Кто уже решает эту боль. Почему у них не получается или получается.' },
-  { number: 5, title: 'Режим работы', description: 'Как вы строите бизнес: сами или с командой. Продажи или продукт. Быстро или надёжно.' },
-  { number: 6, title: 'Итоговый профиль', description: 'Синтез всех блоков. Ваш profile как основателя для системы оценки возможностей.' },
+  {
+    number: 5,
+    title: 'Предпринимательская идентичность — Fauchart & Gruber',
+    description: 'Какой тип предпринимательской мотивации выражен сильнее: рынок, сообщество или миссия.',
+    href: '/assessment/identity',
+  },
+  {
+    number: 6,
+    title: 'Компетенции — EntreComp',
+    description: 'Оценка предпринимательских компетенций: идеи, действие в неопределённости, этика.',
+    href: '/assessment/entrecomp',
+  },
 ]
 
 const STATUS_LABEL: Record<BlockStatus, string> = {
@@ -60,6 +69,8 @@ export default function AssessmentPage() {
   const [block2Done, setBlock2Done] = useState(false)
   const [block3Done, setBlock3Done] = useState(false)
   const [block4Done, setBlock4Done] = useState(false)
+  const [block5Done, setBlock5Done] = useState(false)
+  const [block6Done, setBlock6Done] = useState(false)
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
@@ -68,6 +79,8 @@ export default function AssessmentPage() {
       const b2 = localStorage.getItem(ESE_STORAGE_KEY)
       const b3 = localStorage.getItem(HEXACO_STORAGE_KEY)
       const b4 = localStorage.getItem(VALUES_STORAGE_KEY)
+      const b5 = localStorage.getItem(IDENTITY_STORAGE_KEY)
+      const b6 = localStorage.getItem(ENTRECOMP_STORAGE_KEY)
       const hasNum = (raw: string) => Object.values(JSON.parse(raw)).some((v) => typeof v === 'number' && v > 0)
       if (b1) {
         const parsed = JSON.parse(b1)
@@ -76,6 +89,8 @@ export default function AssessmentPage() {
       if (b2) setBlock2Done(hasNum(b2))
       if (b3) setBlock3Done(hasNum(b3))
       if (b4) setBlock4Done(hasNum(b4))
+      if (b5) setBlock5Done(hasNum(b5))
+      if (b6) setBlock6Done(hasNum(b6))
     } catch {}
     setLoaded(true)
   }, [])
@@ -85,39 +100,53 @@ export default function AssessmentPage() {
     if (blockNumber === 2) return block2Done ? 'completed' : block1Done ? 'available' : 'upcoming'
     if (blockNumber === 3) return block3Done ? 'completed' : block2Done ? 'available' : 'upcoming'
     if (blockNumber === 4) return block4Done ? 'completed' : block3Done ? 'available' : 'upcoming'
+    if (blockNumber === 5) return block5Done ? 'completed' : block4Done ? 'available' : 'upcoming'
+    if (blockNumber === 6) return block6Done ? 'completed' : block5Done ? 'available' : 'upcoming'
     return 'upcoming'
   }
 
   // CTA logic: always point to the next incomplete block
-  const ctaHref = block4Done
+  const ctaHref = block6Done
     ? '/assessment/overview'
-    : block3Done
-      ? '/assessment/values'
-      : block2Done
-        ? '/assessment/hexaco'
-        : block1Done
-          ? '/assessment/ese'
-          : '/assessment/founder-intake'
+    : block5Done
+      ? '/assessment/entrecomp'
+      : block4Done
+        ? '/assessment/identity'
+        : block3Done
+          ? '/assessment/values'
+          : block2Done
+            ? '/assessment/hexaco'
+            : block1Done
+              ? '/assessment/ese'
+              : '/assessment/founder-intake'
 
-  const ctaLabel = block4Done
+  const ctaLabel = block6Done
     ? 'Посмотреть итоги'
-    : block3Done
-      ? 'Продолжить → Блок 4: Ценности'
-      : block2Done
-        ? 'Продолжить → Блок 3: HEXACO'
-        : block1Done
-          ? 'Продолжить → Блок 2: ESE'
-          : 'Начать диагностику'
+    : block5Done
+      ? 'Продолжить → Блок 6: EntreComp'
+      : block4Done
+        ? 'Продолжить → Блок 5: Идентичность'
+        : block3Done
+          ? 'Продолжить → Блок 4: Ценности'
+          : block2Done
+            ? 'Продолжить → Блок 3: HEXACO'
+            : block1Done
+              ? 'Продолжить → Блок 2: ESE'
+              : 'Начать диагностику'
 
-  const ctaNote = block4Done
-    ? 'Блоки 5–6 появятся позже'
-    : block3Done
-      ? 'Блок 4 из 6 · ~5 минут'
-      : block2Done
-        ? 'Блок 3 из 6 · ~7 минут'
-        : block1Done
-          ? 'Блок 2 из 6 · ~5 минут'
-          : 'Блок 1 из 6 · ~10 минут'
+  const ctaNote = block6Done
+    ? 'Диагностика завершена'
+    : block5Done
+      ? 'Блок 6 из 6 · ~3 минуты'
+      : block4Done
+        ? 'Блок 5 из 6 · ~5 минут'
+        : block3Done
+          ? 'Блок 4 из 6 · ~5 минут'
+          : block2Done
+            ? 'Блок 3 из 6 · ~7 минут'
+            : block1Done
+              ? 'Блок 2 из 6 · ~5 минут'
+              : 'Блок 1 из 6 · ~10 минут'
 
   if (!loaded) return null
 

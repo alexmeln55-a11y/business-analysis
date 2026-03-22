@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { INTAKE_STORAGE_KEY, ESE_STORAGE_KEY, HEXACO_STORAGE_KEY, VALUES_STORAGE_KEY, calcESEScores, calcHEXACOScores, calcValuesScores, type FounderIntakeAnswers, type ESEAnswers, type ESEScores, type HEXACOAnswers, type HEXACOScores, type ValuesAnswers, type ValuesScores } from '@/lib/assessment'
+import { INTAKE_STORAGE_KEY, ESE_STORAGE_KEY, HEXACO_STORAGE_KEY, VALUES_STORAGE_KEY, IDENTITY_STORAGE_KEY, ENTRECOMP_STORAGE_KEY, calcESEScores, calcHEXACOScores, calcValuesScores, calcIdentityScores, calcEntreCompScores, type FounderIntakeAnswers, type ESEAnswers, type ESEScores, type HEXACOAnswers, type HEXACOScores, type ValuesAnswers, type ValuesScores, type IdentityAnswers, type IdentityScores, type EntreCompAnswers, type EntreCompScores } from '@/lib/assessment'
 
 // ── Block 1 insight logic ─────────────────────────────────────
 
@@ -167,6 +167,82 @@ function interpretValues(s: ValuesScores): string {
   ].filter(Boolean).join(' ')
 }
 
+// ── Block 5 Identity interpretation ──────────────────────────
+
+const IDENTITY_LABELS: Record<'darwinian' | 'communitarian' | 'missionary', string> = {
+  darwinian: 'Рыночная (Darwinian)',
+  communitarian: 'Сообщество (Communitarian)',
+  missionary: 'Миссионерская (Missionary)',
+}
+
+const IDENTITY_HINTS: Record<'darwinian' | 'communitarian' | 'missionary', string> = {
+  darwinian: 'Сильная ориентация на рост, прибыль, конкуренцию и эффективность.',
+  communitarian: 'Сильная связка с конкретной аудиторией, нишей, отношениями и доверием.',
+  missionary: 'Сильная опора на идею, ценности и смысл изменений.',
+}
+
+const MIXED_HINTS: Partial<Record<string, string>> = {
+  'darwinian+missionary': 'Сочетание рыночной прагматики и стремления к влиянию через идею.',
+  'missionary+darwinian': 'Сочетание рыночной прагматики и стремления к влиянию через идею.',
+  'communitarian+missionary': 'Дело строится вокруг людей и ценностей одновременно.',
+  'missionary+communitarian': 'Дело строится вокруг людей и ценностей одновременно.',
+  'darwinian+communitarian': 'Ориентация на нишу с сильной рыночной прагматикой.',
+  'communitarian+darwinian': 'Ориентация на нишу с сильной рыночной прагматикой.',
+}
+
+function interpretIdentity(s: IdentityScores): string {
+  if (s.darwinian === 0 && s.communitarian === 0 && s.missionary === 0) return 'Ответы не заполнены.'
+
+  if (s.isMixed && s.secondary) {
+    const mixedKey = `${s.dominant}+${s.secondary}`
+    const mixedHint = MIXED_HINTS[mixedKey] ?? ''
+    return [
+      `Смешанный профиль: ${IDENTITY_LABELS[s.dominant]} и ${IDENTITY_LABELS[s.secondary]}.`,
+      mixedHint,
+    ].filter(Boolean).join(' ')
+  }
+
+  const dominantHint = IDENTITY_HINTS[s.dominant]
+  const secondaryStr = s.secondary
+    ? ` На втором месте: ${IDENTITY_LABELS[s.secondary]}.`
+    : ''
+
+  return `Преобладает: ${IDENTITY_LABELS[s.dominant]}. ${dominantHint}${secondaryStr}`
+}
+
+// ── Block 6 EntreComp interpretation ─────────────────────────
+
+const ENTRECOMP_LABELS: Record<keyof Omit<EntreCompScores, 'overall'>, string> = {
+  ideation_opportunity: 'Идеация и возможности',
+  action_under_uncertainty: 'Действие в неопределённости',
+  ethical_orientation: 'Этическое измерение',
+}
+
+const ENTRECOMP_KEYS = Object.keys(ENTRECOMP_LABELS) as Array<keyof Omit<EntreCompScores, 'overall'>>
+
+function interpretEntreComp(s: EntreCompScores): string {
+  const filled = ENTRECOMP_KEYS.filter(k => s[k] > 0)
+  if (filled.length === 0) return 'Ответы не заполнены.'
+
+  const sorted = [...filled].sort((a, b) => s[b] - s[a])
+  const strongest = sorted[0]
+  const weakest = sorted[sorted.length - 1]
+
+  const hints: string[] = []
+  if (s.ideation_opportunity >= 4) hints.push('Хорошо замечает возможности и формулирует идеи под рынок.')
+  if (s.action_under_uncertainty >= 4) hints.push('Способен запускаться без идеальных условий и быстро адаптироваться.')
+  if (s.ethical_orientation >= 4) hints.push('Учитывает последствия решений и держит ценностные границы.')
+  if (s.ideation_opportunity < 3 && s.ideation_opportunity > 0) hints.push('Поиск возможностей — зона роста: стоит практиковать активное наблюдение за рынком.')
+  if (s.action_under_uncertainty < 3 && s.action_under_uncertainty > 0) hints.push('Действие в неопределённости — зона роста: помогает MVP-подход и короткие итерации.')
+
+  return [
+    ...hints.slice(0, 2),
+    sorted.length >= 2
+      ? `Выражено сильнее: ${ENTRECOMP_LABELS[strongest]}. Ниже: ${ENTRECOMP_LABELS[weakest]}.`
+      : `Выражено: ${ENTRECOMP_LABELS[strongest]}.`,
+  ].filter(Boolean).join(' ')
+}
+
 // ── Component ─────────────────────────────────────────────────
 
 export default function AssessmentOverviewPage() {
@@ -174,6 +250,8 @@ export default function AssessmentOverviewPage() {
   const [eseAnswers, setEseAnswers] = useState<ESEAnswers | null>(null)
   const [hexacoAnswers, setHexacoAnswers] = useState<HEXACOAnswers | null>(null)
   const [valuesAnswers, setValuesAnswers] = useState<ValuesAnswers | null>(null)
+  const [identityAnswers, setIdentityAnswers] = useState<IdentityAnswers | null>(null)
+  const [entrecompAnswers, setEntrecompAnswers] = useState<EntreCompAnswers | null>(null)
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
@@ -186,6 +264,10 @@ export default function AssessmentOverviewPage() {
       if (s3) setHexacoAnswers(JSON.parse(s3))
       const s4 = localStorage.getItem(VALUES_STORAGE_KEY)
       if (s4) setValuesAnswers(JSON.parse(s4))
+      const s5 = localStorage.getItem(IDENTITY_STORAGE_KEY)
+      if (s5) setIdentityAnswers(JSON.parse(s5))
+      const s6 = localStorage.getItem(ENTRECOMP_STORAGE_KEY)
+      if (s6) setEntrecompAnswers(JSON.parse(s6))
     } catch {}
     setLoaded(true)
   }, [])
@@ -197,6 +279,10 @@ export default function AssessmentOverviewPage() {
   const hexacoHasData = hexacoScores && hexacoScores.overall > 0
   const valuesScores = valuesAnswers ? calcValuesScores(valuesAnswers) : null
   const valuesHasData = valuesScores && valuesScores.overall > 0
+  const identityScores = identityAnswers ? calcIdentityScores(identityAnswers) : null
+  const identityHasData = identityScores && (identityScores.darwinian > 0 || identityScores.communitarian > 0 || identityScores.missionary > 0)
+  const entrecompScores = entrecompAnswers ? calcEntreCompScores(entrecompAnswers) : null
+  const entrecompHasData = entrecompScores && entrecompScores.overall > 0
 
   if (!loaded) return null
 
@@ -446,6 +532,144 @@ export default function AssessmentOverviewPage() {
 
       <Divider />
 
+      {/* ── Block 5 Identity summary ────────────────────────── */}
+      {identityHasData ? (
+        <div style={{ marginBottom: '48px' }}>
+          <div style={{ fontSize: '12px', color: '#9B8A7A', letterSpacing: '0.06em', marginBottom: '10px' }}>
+            БЛОК 5 · ПРЕДПРИНИМАТЕЛЬСКАЯ ИДЕНТИЧНОСТЬ — FAUCHART &amp; GRUBER
+          </div>
+          <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#F4EDE3', lineHeight: 1.25, marginBottom: '20px' }}>
+            Итог: Профиль мотивации
+          </h2>
+
+          {/* Score bars */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '20px',
+            backgroundColor: '#1F1A16', borderRadius: '18px', padding: '18px 22px',
+            border: '1px solid rgba(181,122,86,0.20)', marginBottom: '16px',
+          }}>
+            <div style={{ flexShrink: 0 }}>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: '#D09062', lineHeight: 1.4 }}>
+                {identityScores!.isMixed ? 'Смешанный' : IDENTITY_LABELS[identityScores!.dominant].split(' ')[0]}
+              </div>
+              <div style={{ fontSize: '11px', color: '#9B8A7A', letterSpacing: '0.06em', marginTop: '4px' }}>
+                ПРОФИЛЬ
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <HEXACOBar label="Рыночная (Darwinian)" score={identityScores!.darwinian} max={5} />
+              <HEXACOBar label="Сообщество (Communitarian)" score={identityScores!.communitarian} max={5} />
+              <HEXACOBar label="Миссионерская (Missionary)" score={identityScores!.missionary} max={5} />
+            </div>
+          </div>
+
+          {/* Interpretation */}
+          <div style={{
+            backgroundColor: '#1A1613', borderRadius: '14px', padding: '16px 20px',
+            border: '1px solid rgba(244,237,227,0.07)',
+          }}>
+            <div style={{ fontSize: '11px', color: '#9B8A7A', letterSpacing: '0.06em', marginBottom: '8px' }}>
+              ПРИКЛАДНАЯ ИНТЕРПРЕТАЦИЯ
+            </div>
+            <p style={{ fontSize: '14px', color: '#CDBEAE', lineHeight: 1.65 }}>
+              {interpretIdentity(identityScores!)}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div style={{ marginBottom: '48px', opacity: 0.6 }}>
+          <div style={{ fontSize: '12px', color: '#9B8A7A', letterSpacing: '0.06em', marginBottom: '10px' }}>
+            БЛОК 5 · ПРЕДПРИНИМАТЕЛЬСКАЯ ИДЕНТИЧНОСТЬ
+          </div>
+          <div style={{
+            backgroundColor: '#141210', borderRadius: '16px', padding: '20px 24px',
+            border: '1px solid rgba(244,237,227,0.05)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px',
+          }}>
+            <p style={{ fontSize: '14px', color: '#6B5D52' }}>Блок 5 ещё не пройден</p>
+            <Link href="/assessment/identity" style={{ textDecoration: 'none' }}>
+              <span style={{
+                fontSize: '13px', fontWeight: 600, color: '#B57A56',
+                backgroundColor: 'rgba(181,122,86,0.12)',
+                padding: '6px 14px', borderRadius: '12px',
+              }}>
+                Пройти →
+              </span>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      <Divider />
+
+      {/* ── Block 6 EntreComp summary ───────────────────────── */}
+      {entrecompHasData ? (
+        <div style={{ marginBottom: '48px' }}>
+          <div style={{ fontSize: '12px', color: '#9B8A7A', letterSpacing: '0.06em', marginBottom: '10px' }}>
+            БЛОК 6 · КОМПЕТЕНЦИИ — ENTRECOMP
+          </div>
+          <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#F4EDE3', lineHeight: 1.25, marginBottom: '20px' }}>
+            Итог: Предпринимательские компетенции
+          </h2>
+
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '20px',
+            backgroundColor: '#1F1A16', borderRadius: '18px', padding: '18px 22px',
+            border: '1px solid rgba(181,122,86,0.20)', marginBottom: '16px',
+          }}>
+            <div style={{ flexShrink: 0 }}>
+              <div style={{ fontSize: '42px', fontWeight: 700, color: '#D09062', lineHeight: 1 }}>
+                {entrecompScores!.overall.toFixed(1)}
+              </div>
+              <div style={{ fontSize: '11px', color: '#9B8A7A', letterSpacing: '0.06em', marginTop: '4px' }}>
+                СРЕДНИЙ / 5
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              {ENTRECOMP_KEYS.map(k => (
+                <HEXACOBar key={k} label={ENTRECOMP_LABELS[k]} score={entrecompScores![k]} max={5} />
+              ))}
+            </div>
+          </div>
+
+          <div style={{
+            backgroundColor: '#1A1613', borderRadius: '14px', padding: '16px 20px',
+            border: '1px solid rgba(244,237,227,0.07)',
+          }}>
+            <div style={{ fontSize: '11px', color: '#9B8A7A', letterSpacing: '0.06em', marginBottom: '8px' }}>
+              ПРИКЛАДНАЯ ИНТЕРПРЕТАЦИЯ
+            </div>
+            <p style={{ fontSize: '14px', color: '#CDBEAE', lineHeight: 1.65 }}>
+              {interpretEntreComp(entrecompScores!)}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div style={{ marginBottom: '48px', opacity: 0.6 }}>
+          <div style={{ fontSize: '12px', color: '#9B8A7A', letterSpacing: '0.06em', marginBottom: '10px' }}>
+            БЛОК 6 · КОМПЕТЕНЦИИ — ENTRECOMP
+          </div>
+          <div style={{
+            backgroundColor: '#141210', borderRadius: '16px', padding: '20px 24px',
+            border: '1px solid rgba(244,237,227,0.05)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px',
+          }}>
+            <p style={{ fontSize: '14px', color: '#6B5D52' }}>Блок 6 ещё не пройден</p>
+            <Link href="/assessment/entrecomp" style={{ textDecoration: 'none' }}>
+              <span style={{
+                fontSize: '13px', fontWeight: 600, color: '#B57A56',
+                backgroundColor: 'rgba(181,122,86,0.12)',
+                padding: '6px 14px', borderRadius: '12px',
+              }}>
+                Пройти →
+              </span>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      <Divider />
+
       {/* Note */}
       <div style={{
         backgroundColor: '#1A1613', borderRadius: '16px', padding: '18px 22px',
@@ -478,8 +702,8 @@ export default function AssessmentOverviewPage() {
             textAlign: 'left', display: 'flex', alignItems: 'center',
             justifyContent: 'space-between', boxSizing: 'border-box',
           }}>
-            <span>Продолжить диагностику позже</span>
-            <span style={{ fontSize: '12px' }}>Блоки 5–6 появятся позже</span>
+            <span>Вернуться к диагностике</span>
+            <span style={{ fontSize: '12px' }}>Все 6 блоков</span>
           </button>
         </Link>
       </div>
