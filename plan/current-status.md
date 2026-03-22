@@ -22,6 +22,7 @@
 | UI-02 | Маршруты исправлены: / — dashboard, /discovery — запрос | ✅ |
 | UI-03 | Смысловой слой: 4 фильтра на detail-странице, shortlist_reason в списке | ✅ |
 | UI-04 | Диагностика основателя: /assessment + /assessment/founder-intake + /assessment/overview | ✅ |
+| Assessment-02 | Блок 2 ESE: /assessment/ese, динамический статус блоков, ESE summary в overview | ✅ |
 
 ---
 

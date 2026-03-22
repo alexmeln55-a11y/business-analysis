@@ -3,21 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-
-// ── Data shape ────────────────────────────────────────────────
-
-export interface FounderIntakeAnswers {
-  // Section 1
-  q1: string; q2: string; q3: string; q4: string
-  // Section 2
-  q5: string; q6: string; q7: string; q8: string
-  // Section 3
-  q9: string; q10: string; q11: string; q12: string
-  // Section 4
-  q13: string; q14: string; q15: string; q16: string
-}
-
-export const INTAKE_STORAGE_KEY = 'founder_intake_v1'
+import { INTAKE_STORAGE_KEY, type FounderIntakeAnswers } from '@/lib/assessment'
 
 const EMPTY: FounderIntakeAnswers = {
   q1: '', q2: '', q3: '', q4: '',
