@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { INTAKE_STORAGE_KEY, ESE_STORAGE_KEY, HEXACO_STORAGE_KEY, calcESEScores, calcHEXACOScores, type FounderIntakeAnswers, type ESEAnswers, type ESEScores, type HEXACOAnswers, type HEXACOScores } from '@/lib/assessment'
+import { INTAKE_STORAGE_KEY, ESE_STORAGE_KEY, HEXACO_STORAGE_KEY, VALUES_STORAGE_KEY, calcESEScores, calcHEXACOScores, calcValuesScores, type FounderIntakeAnswers, type ESEAnswers, type ESEScores, type HEXACOAnswers, type HEXACOScores, type ValuesAnswers, type ValuesScores } from '@/lib/assessment'
 
 // ── Block 1 insight logic ─────────────────────────────────────
 
@@ -129,12 +129,51 @@ function interpretHEXACO(s: HEXACOScores): string {
   ].filter(Boolean).join(' ')
 }
 
+// ── Block 4 Values interpretation ────────────────────────────
+
+const VALUES_LABELS: Record<keyof Omit<ValuesScores, 'overall'>, string> = {
+  achievement_power: 'Достижения и власть',
+  openness_self_direction: 'Открытость, самостоятельность',
+  universalism_benevolence: 'Забота о других',
+  ethics_rule_orientation: 'Этика и правила',
+  security: 'Безопасность',
+  hedonism: 'Удовольствие',
+}
+
+const VALUES_KEYS = Object.keys(VALUES_LABELS) as Array<keyof Omit<ValuesScores, 'overall'>>
+
+function interpretValues(s: ValuesScores): string {
+  const filled = VALUES_KEYS.filter(k => s[k] > 0)
+  if (filled.length === 0) return 'Ответы не заполнены.'
+
+  const sorted = [...filled].sort((a, b) => s[b] - s[a])
+  const top = sorted[0]
+  const bottom = sorted[sorted.length - 1]
+
+  const hints: string[] = []
+  if (s.achievement_power >= 4.5) hints.push('Сильная ориентация на результат и влияние — хорошо подходит для амбициозных ниш.')
+  if (s.openness_self_direction >= 4.5) hints.push('Высокая самостоятельность — важна свобода в выборе модели и партнёров.')
+  if (s.universalism_benevolence >= 4.5) hints.push('Важна польза и справедливость — это фактор доверия с клиентами и командой.')
+  if (s.ethics_rule_orientation >= 4.5) hints.push('Высокая склонность к белым схемам — снижает юридические риски на старте.')
+  if (s.security >= 4.5) hints.push('Осторожный вход важен — стоит планировать финансовую подушку до запуска.')
+  if (s.hedonism >= 4.5) hints.push('Важно качество повседневной жизни — подходят модели с гибким графиком.')
+  if (s.security < 3 && s.security > 0) hints.push('Низкий приоритет безопасности — готов к высокому риску, но стоит закладывать стоп-лосс.')
+  if (s.openness_self_direction < 3 && s.openness_self_direction > 0) hints.push('Ниже среднего открытость — предпочтительны стабильные, предсказуемые форматы.')
+
+  return [
+    ...hints.slice(0, 2),
+    `Выражено сильнее: ${VALUES_LABELS[top]}.`,
+    top !== bottom ? `Ниже среднего: ${VALUES_LABELS[bottom]}.` : '',
+  ].filter(Boolean).join(' ')
+}
+
 // ── Component ─────────────────────────────────────────────────
 
 export default function AssessmentOverviewPage() {
   const [b1Answers, setB1Answers] = useState<FounderIntakeAnswers | null>(null)
   const [eseAnswers, setEseAnswers] = useState<ESEAnswers | null>(null)
   const [hexacoAnswers, setHexacoAnswers] = useState<HEXACOAnswers | null>(null)
+  const [valuesAnswers, setValuesAnswers] = useState<ValuesAnswers | null>(null)
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
@@ -145,6 +184,8 @@ export default function AssessmentOverviewPage() {
       if (s2) setEseAnswers(JSON.parse(s2))
       const s3 = localStorage.getItem(HEXACO_STORAGE_KEY)
       if (s3) setHexacoAnswers(JSON.parse(s3))
+      const s4 = localStorage.getItem(VALUES_STORAGE_KEY)
+      if (s4) setValuesAnswers(JSON.parse(s4))
     } catch {}
     setLoaded(true)
   }, [])
@@ -154,6 +195,8 @@ export default function AssessmentOverviewPage() {
   const eseHasData = eseScores && eseScores.overall > 0
   const hexacoScores = hexacoAnswers ? calcHEXACOScores(hexacoAnswers) : null
   const hexacoHasData = hexacoScores && hexacoScores.overall > 0
+  const valuesScores = valuesAnswers ? calcValuesScores(valuesAnswers) : null
+  const valuesHasData = valuesScores && valuesScores.overall > 0
 
   if (!loaded) return null
 
@@ -335,6 +378,74 @@ export default function AssessmentOverviewPage() {
 
       <Divider />
 
+      {/* ── Block 4 Values summary ─────────────────────────── */}
+      {valuesHasData ? (
+        <div style={{ marginBottom: '48px' }}>
+          <div style={{ fontSize: '12px', color: '#9B8A7A', letterSpacing: '0.06em', marginBottom: '10px' }}>
+            БЛОК 4 · ЦЕННОСТИ — SCHWARTZ PVQ-RR
+          </div>
+          <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#F4EDE3', lineHeight: 1.25, marginBottom: '20px' }}>
+            Итог: Ценностный профиль
+          </h2>
+
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '20px',
+            backgroundColor: '#1F1A16', borderRadius: '18px', padding: '18px 22px',
+            border: '1px solid rgba(181,122,86,0.20)', marginBottom: '16px',
+          }}>
+            <div style={{ flexShrink: 0 }}>
+              <div style={{ fontSize: '42px', fontWeight: 700, color: '#D09062', lineHeight: 1 }}>
+                {valuesScores!.overall.toFixed(1)}
+              </div>
+              <div style={{ fontSize: '11px', color: '#9B8A7A', letterSpacing: '0.06em', marginTop: '4px' }}>
+                СРЕДНИЙ / 6
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              {VALUES_KEYS.map(k => (
+                <HEXACOBar key={k} label={VALUES_LABELS[k]} score={valuesScores![k]} max={6} />
+              ))}
+            </div>
+          </div>
+
+          <div style={{
+            backgroundColor: '#1A1613', borderRadius: '14px', padding: '16px 20px',
+            border: '1px solid rgba(244,237,227,0.07)',
+          }}>
+            <div style={{ fontSize: '11px', color: '#9B8A7A', letterSpacing: '0.06em', marginBottom: '8px' }}>
+              ПРИКЛАДНАЯ ИНТЕРПРЕТАЦИЯ
+            </div>
+            <p style={{ fontSize: '14px', color: '#CDBEAE', lineHeight: 1.65 }}>
+              {interpretValues(valuesScores!)}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div style={{ marginBottom: '48px', opacity: 0.6 }}>
+          <div style={{ fontSize: '12px', color: '#9B8A7A', letterSpacing: '0.06em', marginBottom: '10px' }}>
+            БЛОК 4 · ЦЕННОСТИ
+          </div>
+          <div style={{
+            backgroundColor: '#141210', borderRadius: '16px', padding: '20px 24px',
+            border: '1px solid rgba(244,237,227,0.05)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px',
+          }}>
+            <p style={{ fontSize: '14px', color: '#6B5D52' }}>Блок 4 ещё не пройден</p>
+            <Link href="/assessment/values" style={{ textDecoration: 'none' }}>
+              <span style={{
+                fontSize: '13px', fontWeight: 600, color: '#B57A56',
+                backgroundColor: 'rgba(181,122,86,0.12)',
+                padding: '6px 14px', borderRadius: '12px',
+              }}>
+                Пройти →
+              </span>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      <Divider />
+
       {/* Note */}
       <div style={{
         backgroundColor: '#1A1613', borderRadius: '16px', padding: '18px 22px',
@@ -368,7 +479,7 @@ export default function AssessmentOverviewPage() {
             justifyContent: 'space-between', boxSizing: 'border-box',
           }}>
             <span>Продолжить диагностику позже</span>
-            <span style={{ fontSize: '12px' }}>Блоки 4–6 появятся позже</span>
+            <span style={{ fontSize: '12px' }}>Блоки 5–6 появятся позже</span>
           </button>
         </Link>
       </div>

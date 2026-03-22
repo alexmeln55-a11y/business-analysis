@@ -1,5 +1,5 @@
 // Shared types and constants for assessment module.
-// Imported by founder-intake, ese, hexaco, and overview pages.
+// Imported by founder-intake, ese, hexaco, values, and overview pages.
 
 // ── Block 1: Founder Intake ───────────────────────────────────
 
@@ -107,5 +107,61 @@ export function calcHEXACOScores(a: HEXACOAnswers): HEXACOScores {
     conscientiousness: factors[4],
     openness_to_experience: factors[5],
     overall: avg(...factors.filter(v => v > 0)),
+  }
+}
+
+// ── Block 4: Values (Schwartz PVQ-RR) ────────────────────────
+
+export interface ValuesAnswers {
+  // Достижения и власть
+  q1: number; q2: number; q3: number
+  // Открытость к изменениям, самостоятельность
+  q4: number; q5: number; q6: number
+  // Забота о других, универсализм
+  q7: number; q8: number; q9: number
+  // Отношение к конкуренции и серым зонам (q12 reversed)
+  q10: number; q11: number; q12: number
+  // Безопасность (q15 reversed)
+  q13: number; q14: number; q15: number
+  // Удовольствие и гедонизм
+  q16: number; q17: number; q18: number
+}
+
+export interface ValuesScores {
+  achievement_power: number
+  openness_self_direction: number
+  universalism_benevolence: number
+  ethics_rule_orientation: number
+  security: number
+  hedonism: number
+  overall: number
+}
+
+export const VALUES_STORAGE_KEY = 'values_v1'
+
+export function calcValuesScores(a: ValuesAnswers): ValuesScores {
+  const avg = (...vals: number[]) => {
+    const filled = vals.filter(v => v > 0)
+    return filled.length ? filled.reduce((s, v) => s + v, 0) / filled.length : 0
+  }
+  // q12 and q15 are reverse-scored for 1–6 scale: reversed = 7 - answer
+  const q12r = a.q12 > 0 ? 7 - a.q12 : 0
+  const q15r = a.q15 > 0 ? 7 - a.q15 : 0
+  const clusters = [
+    avg(a.q1, a.q2, a.q3),
+    avg(a.q4, a.q5, a.q6),
+    avg(a.q7, a.q8, a.q9),
+    avg(a.q10, a.q11, q12r),
+    avg(a.q13, a.q14, q15r),
+    avg(a.q16, a.q17, a.q18),
+  ]
+  return {
+    achievement_power: clusters[0],
+    openness_self_direction: clusters[1],
+    universalism_benevolence: clusters[2],
+    ethics_rule_orientation: clusters[3],
+    security: clusters[4],
+    hedonism: clusters[5],
+    overall: avg(...clusters.filter(v => v > 0)),
   }
 }
