@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { INTAKE_STORAGE_KEY, ESE_STORAGE_KEY } from '@/lib/assessment'
+import { INTAKE_STORAGE_KEY, ESE_STORAGE_KEY, HEXACO_STORAGE_KEY } from '@/lib/assessment'
 
 type BlockStatus = 'completed' | 'available' | 'upcoming'
 
@@ -26,7 +26,12 @@ const BLOCKS: BlockDef[] = [
     description: 'Оценка уверенности по 5 фазам запуска нового направления.',
     href: '/assessment/ese',
   },
-  { number: 3, title: 'Рыночные боли', description: 'Какие проблемы вы видите в своей отрасли. Что бесит клиентов вокруг вас.' },
+  {
+    number: 3,
+    title: 'HEXACO — личностный профиль',
+    description: 'Оценка предпринимательского профиля по 6 личностным факторам.',
+    href: '/assessment/hexaco',
+  },
   { number: 4, title: 'Конкурентный контекст', description: 'Кто уже решает эту боль. Почему у них не получается или получается.' },
   { number: 5, title: 'Режим работы', description: 'Как вы строите бизнес: сами или с командой. Продажи или продукт. Быстро или надёжно.' },
   { number: 6, title: 'Итоговый профиль', description: 'Синтез всех блоков. Ваш profile как основателя для системы оценки возможностей.' },
@@ -47,19 +52,25 @@ const STATUS_COLOR: Record<BlockStatus, string> = {
 export default function AssessmentPage() {
   const [block1Done, setBlock1Done] = useState(false)
   const [block2Done, setBlock2Done] = useState(false)
+  const [block3Done, setBlock3Done] = useState(false)
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     try {
       const b1 = localStorage.getItem(INTAKE_STORAGE_KEY)
       const b2 = localStorage.getItem(ESE_STORAGE_KEY)
+      const b3 = localStorage.getItem(HEXACO_STORAGE_KEY)
       if (b1) {
         const parsed = JSON.parse(b1)
-        setBlock1Done(Object.values(parsed).some((v) => typeof v === 'string' && v.trim().length > 0))
+        setBlock1Done(Object.values(parsed).some((v) => typeof v === 'string' && (v as string).trim().length > 0))
       }
       if (b2) {
         const parsed = JSON.parse(b2)
         setBlock2Done(Object.values(parsed).some((v) => typeof v === 'number' && v > 0))
+      }
+      if (b3) {
+        const parsed = JSON.parse(b3)
+        setBlock3Done(Object.values(parsed).some((v) => typeof v === 'number' && v > 0))
       }
     } catch {}
     setLoaded(true)
@@ -68,27 +79,34 @@ export default function AssessmentPage() {
   const getStatus = (blockNumber: number): BlockStatus => {
     if (blockNumber === 1) return block1Done ? 'completed' : 'available'
     if (blockNumber === 2) return block2Done ? 'completed' : block1Done ? 'available' : 'upcoming'
+    if (blockNumber === 3) return block3Done ? 'completed' : block2Done ? 'available' : 'upcoming'
     return 'upcoming'
   }
 
-  // CTA logic
-  const ctaHref = block2Done
+  // CTA logic: always point to the next incomplete block
+  const ctaHref = block3Done
     ? '/assessment/overview'
-    : block1Done
-      ? '/assessment/ese'
-      : '/assessment/founder-intake'
+    : block2Done
+      ? '/assessment/hexaco'
+      : block1Done
+        ? '/assessment/ese'
+        : '/assessment/founder-intake'
 
-  const ctaLabel = block2Done
+  const ctaLabel = block3Done
     ? 'Посмотреть итоги'
-    : block1Done
-      ? 'Продолжить → Блок 2: ESE'
-      : 'Начать диагностику'
+    : block2Done
+      ? 'Продолжить → Блок 3: HEXACO'
+      : block1Done
+        ? 'Продолжить → Блок 2: ESE'
+        : 'Начать диагностику'
 
-  const ctaNote = block2Done
-    ? 'Блоки 3–6 появятся позже'
-    : block1Done
-      ? 'Блок 2 из 6 · ~5 минут'
-      : 'Блок 1 из 6 · ~10 минут'
+  const ctaNote = block3Done
+    ? 'Блоки 4–6 появятся позже'
+    : block2Done
+      ? 'Блок 3 из 6 · ~7 минут'
+      : block1Done
+        ? 'Блок 2 из 6 · ~5 минут'
+        : 'Блок 1 из 6 · ~10 минут'
 
   if (!loaded) return null
 

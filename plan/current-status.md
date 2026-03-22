@@ -23,6 +23,7 @@
 | UI-03 | Смысловой слой: 4 фильтра на detail-странице, shortlist_reason в списке | ✅ |
 | UI-04 | Диагностика основателя: /assessment + /assessment/founder-intake + /assessment/overview | ✅ |
 | Assessment-02 | Блок 2 ESE: /assessment/ese, динамический статус блоков, ESE summary в overview | ✅ |
+| Assessment-03 | Блок 3 HEXACO: /assessment/hexaco, 6 факторов × 4 вопроса, шкала 1–5, reverse scoring q8, HEXACO summary в overview | ✅ |
 
 ---
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { INTAKE_STORAGE_KEY, ESE_STORAGE_KEY, calcESEScores, type FounderIntakeAnswers, type ESEAnswers, type ESEScores } from '@/lib/assessment'
+import { INTAKE_STORAGE_KEY, ESE_STORAGE_KEY, HEXACO_STORAGE_KEY, calcESEScores, calcHEXACOScores, type FounderIntakeAnswers, type ESEAnswers, type ESEScores, type HEXACOAnswers, type HEXACOScores } from '@/lib/assessment'
 
 // ── Block 1 insight logic ─────────────────────────────────────
 
@@ -89,11 +89,52 @@ function interpretESE(scores: ESEScores): string {
   return summary
 }
 
+// ── Block 3 HEXACO interpretation ────────────────────────────
+
+const HEXACO_LABELS: Record<keyof Omit<HEXACOScores, 'overall'>, string> = {
+  honesty_humility: 'Честность–Смиренность',
+  emotionality: 'Эмоциональность',
+  extraversion: 'Экстраверсия',
+  agreeableness: 'Доброжелательность',
+  conscientiousness: 'Добросовестность',
+  openness_to_experience: 'Открытость к опыту',
+}
+
+const HEXACO_KEYS = Object.keys(HEXACO_LABELS) as Array<keyof Omit<HEXACOScores, 'overall'>>
+
+function interpretHEXACO(s: HEXACOScores): string {
+  const filled = HEXACO_KEYS.filter(k => s[k] > 0)
+  if (filled.length === 0) return 'Ответы не заполнены.'
+
+  const sorted = [...filled].sort((a, b) => s[b] - s[a])
+  const top = sorted.slice(0, 2)
+  const bottom = sorted[sorted.length - 1]
+
+  const hints: string[] = []
+  if (s.honesty_humility >= 4) hints.push('Высокая честность — низкий риск манипулятивных продаж.')
+  if (s.emotionality >= 4) hints.push('Высокая эмоциональность — нужны ритуалы восстановления в моменты неопределённости.')
+  if (s.extraversion >= 4) hints.push('Высокая экстраверсия — продажи и партнёрства скорее всего даются легко.')
+  if (s.conscientiousness >= 4) hints.push('Высокая добросовестность — сильная операционная дисциплина и управляемость.')
+  if (s.openness_to_experience >= 4) hints.push('Высокая открытость — готовность к нестандартным моделям и экспериментам.')
+  if (s.extraversion < 3 && s.extraversion > 0) hints.push('Низкая экстраверсия — стоит заложить больше времени на первые продажи.')
+  if (s.conscientiousness < 3 && s.conscientiousness > 0) hints.push('Невысокая добросовестность — рекомендуется партнёр с сильной операционной функцией.')
+
+  const topStr = top.map(k => HEXACO_LABELS[k]).join(', ')
+  const bottomStr = HEXACO_LABELS[bottom]
+
+  return [
+    ...hints.slice(0, 2),
+    `Выражены сильнее: ${topStr}.`,
+    top[top.length - 1] !== bottom ? `Ниже среднего: ${bottomStr}.` : '',
+  ].filter(Boolean).join(' ')
+}
+
 // ── Component ─────────────────────────────────────────────────
 
 export default function AssessmentOverviewPage() {
   const [b1Answers, setB1Answers] = useState<FounderIntakeAnswers | null>(null)
   const [eseAnswers, setEseAnswers] = useState<ESEAnswers | null>(null)
+  const [hexacoAnswers, setHexacoAnswers] = useState<HEXACOAnswers | null>(null)
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
@@ -102,6 +143,8 @@ export default function AssessmentOverviewPage() {
       if (s1) setB1Answers(JSON.parse(s1))
       const s2 = localStorage.getItem(ESE_STORAGE_KEY)
       if (s2) setEseAnswers(JSON.parse(s2))
+      const s3 = localStorage.getItem(HEXACO_STORAGE_KEY)
+      if (s3) setHexacoAnswers(JSON.parse(s3))
     } catch {}
     setLoaded(true)
   }, [])
@@ -109,6 +152,8 @@ export default function AssessmentOverviewPage() {
   const insights = deriveInsights(b1Answers)
   const eseScores = eseAnswers ? calcESEScores(eseAnswers) : null
   const eseHasData = eseScores && eseScores.overall > 0
+  const hexacoScores = hexacoAnswers ? calcHEXACOScores(hexacoAnswers) : null
+  const hexacoHasData = hexacoScores && hexacoScores.overall > 0
 
   if (!loaded) return null
 
@@ -220,6 +265,76 @@ export default function AssessmentOverviewPage() {
 
       <Divider />
 
+      {/* ── Block 3 HEXACO summary ─────────────────────────── */}
+      {hexacoHasData ? (
+        <div style={{ marginBottom: '48px' }}>
+          <div style={{ fontSize: '12px', color: '#9B8A7A', letterSpacing: '0.06em', marginBottom: '10px' }}>
+            БЛОК 3 · HEXACO — ЛИЧНОСТНЫЙ ПРОФИЛЬ
+          </div>
+          <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#F4EDE3', lineHeight: 1.25, marginBottom: '20px' }}>
+            Итог: Личностный профиль
+          </h2>
+
+          {/* Overall + factor bars */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '20px',
+            backgroundColor: '#1F1A16', borderRadius: '18px', padding: '18px 22px',
+            border: '1px solid rgba(181,122,86,0.20)', marginBottom: '16px',
+          }}>
+            <div style={{ flexShrink: 0 }}>
+              <div style={{ fontSize: '42px', fontWeight: 700, color: '#D09062', lineHeight: 1 }}>
+                {hexacoScores!.overall.toFixed(1)}
+              </div>
+              <div style={{ fontSize: '11px', color: '#9B8A7A', letterSpacing: '0.06em', marginTop: '4px' }}>
+                СРЕДНИЙ / 5
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              {HEXACO_KEYS.map(k => (
+                <HEXACOBar key={k} label={HEXACO_LABELS[k]} score={hexacoScores![k]} max={5} />
+              ))}
+            </div>
+          </div>
+
+          {/* Interpretation */}
+          <div style={{
+            backgroundColor: '#1A1613', borderRadius: '14px', padding: '16px 20px',
+            border: '1px solid rgba(244,237,227,0.07)',
+          }}>
+            <div style={{ fontSize: '11px', color: '#9B8A7A', letterSpacing: '0.06em', marginBottom: '8px' }}>
+              ПРИКЛАДНАЯ ИНТЕРПРЕТАЦИЯ
+            </div>
+            <p style={{ fontSize: '14px', color: '#CDBEAE', lineHeight: 1.65 }}>
+              {interpretHEXACO(hexacoScores!)}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div style={{ marginBottom: '48px', opacity: 0.6 }}>
+          <div style={{ fontSize: '12px', color: '#9B8A7A', letterSpacing: '0.06em', marginBottom: '10px' }}>
+            БЛОК 3 · HEXACO
+          </div>
+          <div style={{
+            backgroundColor: '#141210', borderRadius: '16px', padding: '20px 24px',
+            border: '1px solid rgba(244,237,227,0.05)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px',
+          }}>
+            <p style={{ fontSize: '14px', color: '#6B5D52' }}>Блок 3 ещё не пройден</p>
+            <Link href="/assessment/hexaco" style={{ textDecoration: 'none' }}>
+              <span style={{
+                fontSize: '13px', fontWeight: 600, color: '#B57A56',
+                backgroundColor: 'rgba(181,122,86,0.12)',
+                padding: '6px 14px', borderRadius: '12px',
+              }}>
+                Пройти →
+              </span>
+            </Link>
+          </div>
+        </div>
+      )}
+
+      <Divider />
+
       {/* Note */}
       <div style={{
         backgroundColor: '#1A1613', borderRadius: '16px', padding: '18px 22px',
@@ -253,7 +368,7 @@ export default function AssessmentOverviewPage() {
             justifyContent: 'space-between', boxSizing: 'border-box',
           }}>
             <span>Продолжить диагностику позже</span>
-            <span style={{ fontSize: '12px' }}>Блоки 3–6 появятся позже</span>
+            <span style={{ fontSize: '12px' }}>Блоки 4–6 появятся позже</span>
           </button>
         </Link>
       </div>
@@ -293,6 +408,25 @@ function ESEBar({ label, score }: { label: string; score: number }) {
         <div style={{
           height: '100%',
           width: score > 0 ? `${(score / 7) * 100}%` : '0%',
+          backgroundColor: '#B57A56',
+          borderRadius: '2px',
+        }} />
+      </div>
+      <div style={{ fontSize: '12px', fontWeight: 600, color: '#D09062', width: '28px', textAlign: 'right' }}>
+        {score > 0 ? score.toFixed(1) : '—'}
+      </div>
+    </div>
+  )
+}
+
+function HEXACOBar({ label, score, max }: { label: string; score: number; max: number }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '7px' }}>
+      <div style={{ fontSize: '12px', color: '#9B8A7A', width: '170px', flexShrink: 0 }}>{label}</div>
+      <div style={{ flex: 1, height: '4px', borderRadius: '2px', backgroundColor: 'rgba(244,237,227,0.08)' }}>
+        <div style={{
+          height: '100%',
+          width: score > 0 ? `${(score / max) * 100}%` : '0%',
           backgroundColor: '#B57A56',
           borderRadius: '2px',
         }} />
