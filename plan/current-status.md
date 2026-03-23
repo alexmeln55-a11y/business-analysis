@@ -27,6 +27,7 @@
 | Assessment-04 | Блок 4 Values: /assessment/values, 6 кластеров × 3 вопроса, шкала 1–6, reverse q12/q15, Values summary в overview | ✅ |
 | Assessment-05 | Блок 5 Identity: /assessment/identity, 3 типа × 5 вопросов (Fauchart & Gruber), шкала 1–5, dominant+secondary, Identity summary в overview | ✅ |
 | Assessment-06 | Блок 6 EntreComp: /assessment/entrecomp, 3 компетенции × 3 вопроса, шкала 1–5, EntreComp summary в overview | ✅ |
+| Assessment-07 | Финальный overview: buildFounderSummary, 4 синтетических секции (сильные стороны, риски, стиль запуска, fit), completion status, условный CTA | ✅ |
 
 ---
 
