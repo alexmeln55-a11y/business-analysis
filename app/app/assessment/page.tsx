@@ -105,48 +105,51 @@ export default function AssessmentPage() {
     return 'upcoming'
   }
 
-  // CTA logic: always point to the next incomplete block
-  const ctaHref = block6Done
+  // All 6 must be done — block1 included
+  const allDone = block1Done && block2Done && block3Done && block4Done && block5Done && block6Done
+
+  // CTA: point to the first incomplete block (block1 always checked first)
+  const ctaHref = allDone
     ? '/assessment/overview'
-    : block5Done
-      ? '/assessment/entrecomp'
-      : block4Done
-        ? '/assessment/identity'
-        : block3Done
-          ? '/assessment/values'
-          : block2Done
-            ? '/assessment/hexaco'
-            : block1Done
-              ? '/assessment/ese'
-              : '/assessment/founder-intake'
+    : !block1Done
+      ? '/assessment/founder-intake'
+      : !block2Done
+        ? '/assessment/ese'
+        : !block3Done
+          ? '/assessment/hexaco'
+          : !block4Done
+            ? '/assessment/values'
+            : !block5Done
+              ? '/assessment/identity'
+              : '/assessment/entrecomp'
 
-  const ctaLabel = block6Done
+  const ctaLabel = allDone
     ? 'Посмотреть итоги'
-    : block5Done
-      ? 'Продолжить → Блок 6: EntreComp'
-      : block4Done
-        ? 'Продолжить → Блок 5: Идентичность'
-        : block3Done
-          ? 'Продолжить → Блок 4: Ценности'
-          : block2Done
-            ? 'Продолжить → Блок 3: HEXACO'
-            : block1Done
-              ? 'Продолжить → Блок 2: ESE'
-              : 'Начать диагностику'
+    : !block1Done
+      ? 'Заполнить блок 1'
+      : !block2Done
+        ? 'Продолжить → Блок 2: ESE'
+        : !block3Done
+          ? 'Продолжить → Блок 3: HEXACO'
+          : !block4Done
+            ? 'Продолжить → Блок 4: Ценности'
+            : !block5Done
+              ? 'Продолжить → Блок 5: Идентичность'
+              : 'Продолжить → Блок 6: EntreComp'
 
-  const ctaNote = block6Done
+  const ctaNote = allDone
     ? 'Диагностика завершена'
-    : block5Done
-      ? 'Блок 6 из 6 · ~3 минуты'
-      : block4Done
-        ? 'Блок 5 из 6 · ~5 минут'
-        : block3Done
-          ? 'Блок 4 из 6 · ~5 минут'
-          : block2Done
-            ? 'Блок 3 из 6 · ~7 минут'
-            : block1Done
-              ? 'Блок 2 из 6 · ~5 минут'
-              : 'Блок 1 из 6 · ~10 минут'
+    : !block1Done
+      ? 'Блок 1 из 6 · ~10 минут'
+      : !block2Done
+        ? 'Блок 2 из 6 · ~5 минут'
+        : !block3Done
+          ? 'Блок 3 из 6 · ~7 минут'
+          : !block4Done
+            ? 'Блок 4 из 6 · ~5 минут'
+            : !block5Done
+              ? 'Блок 5 из 6 · ~5 минут'
+              : 'Блок 6 из 6 · ~3 минуты'
 
   if (!loaded) return null
 
@@ -171,8 +174,10 @@ export default function AssessmentPage() {
         {BLOCKS.map((block) => {
           const status = getStatus(block.number)
           const isActive = status === 'available' || status === 'completed'
-          return (
-            <div key={block.number} style={{
+          const isClickable = isActive && !!block.href
+
+          const cardContent = (
+            <div style={{
               backgroundColor: isActive ? '#1F1A16' : '#141210',
               borderRadius: '20px',
               padding: '20px 24px',
@@ -185,6 +190,8 @@ export default function AssessmentPage() {
               alignItems: 'flex-start',
               gap: '20px',
               opacity: isActive ? 1 : 0.5,
+              cursor: isClickable ? 'pointer' : 'default',
+              transition: 'border-color 0.15s ease',
             }}>
               {/* Number badge */}
               <div style={{
@@ -247,6 +254,14 @@ export default function AssessmentPage() {
                 {STATUS_LABEL[status]}
               </div>
             </div>
+          )
+
+          return isClickable ? (
+            <Link key={block.number} href={block.href!} style={{ textDecoration: 'none', display: 'block' }}>
+              {cardContent}
+            </Link>
+          ) : (
+            <div key={block.number}>{cardContent}</div>
           )
         })}
       </div>
