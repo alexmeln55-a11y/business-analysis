@@ -270,39 +270,25 @@ export default function AssessmentOverviewPage() {
         ← Диагностика
       </Link>
 
-      {/* ── Header ─────────────────────────────────────────── */}
-      <div style={{ marginBottom: '40px' }}>
-        <div style={{ fontSize: '12px', color: '#9B8A7A', letterSpacing: '0.06em', marginBottom: '12px' }}>
-          ИТОГ ДИАГНОСТИКИ
-        </div>
-        <h1 style={{ fontSize: '32px', fontWeight: 700, color: '#F4EDE3', lineHeight: 1.2, marginBottom: '20px' }}>
-          Профиль основателя
-        </h1>
-
-        {!allDone && (
-          <div>
-            <div style={{ fontSize: '13px', color: '#9B8A7A', marginBottom: '12px' }}>
-              Заполнено {profile.completedBlocks} из 6 блоков — чем больше, тем точнее профиль
-            </div>
-            <Link href="/assessment" style={{ textDecoration: 'none' }}>
-              <button style={{
-                backgroundColor: 'transparent', color: '#B57A56',
-                border: '1px solid rgba(181,122,86,0.30)', borderRadius: '14px',
-                padding: '10px 20px', fontSize: '14px', cursor: 'pointer',
-              }}>
-                Продолжить диагностику →
-              </button>
-            </Link>
-          </div>
-        )}
-      </div>
-
       {/* ── Единый профиль основателя ────────────────────── */}
       {profile.completedBlocks > 0 && (
         <>
-          <div style={{ fontSize: '12px', color: '#9B8A7A', letterSpacing: '0.06em', marginBottom: '28px' }}>
-            ЕДИНЫЙ ПРОФИЛЬ ОСНОВАТЕЛЯ
-          </div>
+          {!allDone && (
+            <div style={{ marginBottom: '24px' }}>
+              <div style={{ fontSize: '13px', color: '#9B8A7A', marginBottom: '12px' }}>
+                Заполнено {profile.completedBlocks} из 6 блоков — чем больше, тем точнее профиль
+              </div>
+              <Link href="/assessment" style={{ textDecoration: 'none' }}>
+                <button style={{
+                  backgroundColor: 'transparent', color: '#B57A56',
+                  border: '1px solid rgba(181,122,86,0.30)', borderRadius: '14px',
+                  padding: '10px 20px', fontSize: '14px', cursor: 'pointer',
+                }}>
+                  Продолжить диагностику →
+                </button>
+              </Link>
+            </div>
+          )}
 
           {/* Текстовый профиль */}
           <div style={{
