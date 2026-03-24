@@ -11,112 +11,29 @@ import {
   type ClarificationMessage,
 } from '@/lib/assessment'
 
+// ── Storage keys ───────────────────────────────────────────────
+// Separate key for current question index so it persists across sessions
+const BLOCK1_IDX_KEY = 'block1_ai_idx_v1'
+
 // ── Question definitions (4 секции × 4 вопроса = 16) ──────────
 
 const QUESTIONS = [
-  // ── Секция 1: Навыки и монетизация ──
-  {
-    id: 'q1',
-    section: 'Навыки и монетизация',
-    text: 'За что вам платили деньги за последние 3 года? Опишите своими словами — что конкретно вы делали.',
-    placeholder: '',
-  },
-  {
-    id: 'q2',
-    section: 'Навыки и монетизация',
-    text: 'В чём вы реально лучше большинства людей вокруг вас? Назовите одну-две вещи, где вы явно сильнее.',
-    placeholder: '',
-  },
-  {
-    id: 'q3',
-    section: 'Навыки и монетизация',
-    text: 'Какие навыки у вас уже оплачены рынком — клиенты или работодатели платили именно за это?',
-    placeholder: '',
-  },
-  {
-    id: 'q4',
-    section: 'Навыки и монетизация',
-    text: 'Что вы умеете делать настолько хорошо, что вас рекомендуют или зовут повторно?',
-    placeholder: '',
-  },
-
-  // ── Секция 2: Рыночный доступ ──
-  {
-    id: 'q5',
-    section: 'Рыночный доступ',
-    text: 'С какими типами клиентов или отраслями вы уже работали? Есть ли контакты, которым можно предложить что-то новое?',
-    placeholder: '',
-  },
-  {
-    id: 'q6',
-    section: 'Рыночный доступ',
-    text: 'Через какой канал вы могли бы найти первых покупателей прямо сейчас?',
-    placeholder: '',
-  },
-  {
-    id: 'q7',
-    section: 'Рыночный доступ',
-    text: 'Есть ли у вас партнёры, поставщики, подрядчики или аудитория, с которой уже есть контакт?',
-    placeholder: '',
-  },
-  {
-    id: 'q8',
-    section: 'Рыночный доступ',
-    text: 'Кому именно вы могли бы продать что-то новое уже в первые 30 дней — конкретно, не абстрактно?',
-    placeholder: '',
-  },
-
-  // ── Секция 3: Контекст и мотивация ──
-  {
-    id: 'q9',
-    section: 'Контекст и мотивация',
-    text: 'Почему вы сейчас ищете новую бизнес-возможность? Что не устраивает в текущей ситуации?',
-    placeholder: '',
-  },
-  {
-    id: 'q10',
-    section: 'Контекст и мотивация',
-    text: 'Что вы уже пробовали запускать или менять? Что сработало, а что нет?',
-    placeholder: '',
-  },
-  {
-    id: 'q11',
-    section: 'Контекст и мотивация',
-    text: 'Что останавливало вас раньше от запуска нового направления?',
-    placeholder: '',
-  },
-  {
-    id: 'q12',
-    section: 'Контекст и мотивация',
-    text: 'Чем вы хотите заниматься — и чем точно не хотите? Что для вас неприемлемо?',
-    placeholder: '',
-  },
-
-  // ── Секция 4: Ресурсы и ограничения ──
-  {
-    id: 'q13',
-    section: 'Ресурсы и ограничения',
-    text: 'Сколько времени в неделю вы готовы вкладывать в новое направление?',
-    placeholder: '',
-  },
-  {
-    id: 'q14',
-    section: 'Ресурсы и ограничения',
-    text: 'Как быстро вам нужен результат в деньгах? Сколько месяцев без прибыли вы можете выдержать?',
-    placeholder: '',
-  },
-  {
-    id: 'q15',
-    section: 'Ресурсы и ограничения',
-    text: 'Какой бюджет вы готовы вложить в запуск?',
-    placeholder: '',
-  },
-  {
-    id: 'q16',
-    section: 'Ресурсы и ограничения',
-    text: 'Есть ли у вас помощники, партнёры или команда? Готовы работать в одиночку?',
-    placeholder: '',
-  },
+  { id: 'q1',  section: 'Навыки и монетизация',    text: 'За что вам платили деньги за последние 3 года? Опишите своими словами — что конкретно вы делали.' },
+  { id: 'q2',  section: 'Навыки и монетизация',    text: 'В чём вы реально лучше большинства людей вокруг вас? Назовите одну-две вещи, где вы явно сильнее.' },
+  { id: 'q3',  section: 'Навыки и монетизация',    text: 'Какие навыки у вас уже оплачены рынком — клиенты или работодатели платили именно за это?' },
+  { id: 'q4',  section: 'Навыки и монетизация',    text: 'Что вы умеете делать настолько хорошо, что вас рекомендуют или зовут повторно?' },
+  { id: 'q5',  section: 'Рыночный доступ',         text: 'С какими типами клиентов или отраслями вы уже работали? Есть ли контакты, которым можно предложить что-то новое?' },
+  { id: 'q6',  section: 'Рыночный доступ',         text: 'Через какой канал вы могли бы найти первых покупателей прямо сейчас?' },
+  { id: 'q7',  section: 'Рыночный доступ',         text: 'Есть ли у вас партнёры, поставщики, подрядчики или аудитория, с которой уже есть контакт?' },
+  { id: 'q8',  section: 'Рыночный доступ',         text: 'Кому именно вы могли бы продать что-то новое уже в первые 30 дней — конкретно, не абстрактно?' },
+  { id: 'q9',  section: 'Контекст и мотивация',    text: 'Почему вы сейчас ищете новую бизнес-возможность? Что не устраивает в текущей ситуации?' },
+  { id: 'q10', section: 'Контекст и мотивация',    text: 'Что вы уже пробовали запускать или менять? Что сработало, а что нет?' },
+  { id: 'q11', section: 'Контекст и мотивация',    text: 'Что останавливало вас раньше от запуска нового направления?' },
+  { id: 'q12', section: 'Контекст и мотивация',    text: 'Чем вы хотите заниматься — и чем точно не хотите? Что для вас неприемлемо?' },
+  { id: 'q13', section: 'Ресурсы и ограничения',   text: 'Сколько времени в неделю вы готовы вкладывать в новое направление?' },
+  { id: 'q14', section: 'Ресурсы и ограничения',   text: 'Как быстро вам нужен результат в деньгах? Сколько месяцев без прибыли вы можете выдержать?' },
+  { id: 'q15', section: 'Ресурсы и ограничения',   text: 'Какой бюджет вы готовы вложить в запуск?' },
+  { id: 'q16', section: 'Ресурсы и ограничения',   text: 'Есть ли у вас помощники, партнёры или команда? Готовы работать в одиночку?' },
 ]
 
 // ── State types ────────────────────────────────────────────────
@@ -149,29 +66,73 @@ export default function FounderIntakePage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const clarifyRef = useRef<HTMLTextAreaElement>(null)
 
-  // Load saved answers from localStorage on mount
+  // ── Persist current question index ────────────────────────────
+  function saveIdx(idx: number) {
+    try { localStorage.setItem(BLOCK1_IDX_KEY, String(idx)) } catch {}
+  }
+
+  // ── Restore phase based on saved answer ───────────────────────
+  function restoreQuestionState(savedAnswers: Block1AIAnswers, idx: number) {
+    const q = QUESTIONS[idx]
+    if (!q) return
+    const a = savedAnswers[q.id]
+    if (a && (a.status === 'resolved' || a.status === 'low_confidence')) {
+      setMainInput(a.rawAnswer)
+      setClarificationHistory(a.clarificationHistory)
+      setPhase('resolved')
+      setClarifyingQuestion('')
+      setClarificationInput('')
+      setRawAnswer('')
+      setErrorMsg('')
+    } else if (a?.rawAnswer) {
+      // Draft in progress — restore input text
+      setMainInput(a.rawAnswer)
+      setPhase('idle')
+      setClarificationHistory([])
+      setClarifyingQuestion('')
+      setClarificationInput('')
+      setRawAnswer('')
+      setErrorMsg('')
+    } else {
+      resetQuestionState()
+    }
+  }
+
+  // ── Load from localStorage on mount ───────────────────────────
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(BLOCK1_AI_STORAGE_KEY)
-      if (saved) {
-        const parsed: Block1AIAnswers = JSON.parse(saved)
+      const savedAnswers = localStorage.getItem(BLOCK1_AI_STORAGE_KEY)
+      const savedIdx = localStorage.getItem(BLOCK1_IDX_KEY)
+
+      let parsed: Block1AIAnswers = {}
+      if (savedAnswers) {
+        parsed = JSON.parse(savedAnswers)
         setAnswers(parsed)
-        const firstUnanswered = QUESTIONS.findIndex(q => {
-          const a = parsed[q.id]
-          return !a || (a.status !== 'resolved' && a.status !== 'low_confidence' && a.status !== 'skipped')
-        })
-        if (firstUnanswered === -1) {
-          // All answered — show review state instead of redirecting
-          setAllDone(true)
-          setCurrentIdx(QUESTIONS.length - 1)
-        } else {
-          setCurrentIdx(firstUnanswered)
-        }
       }
+
+      // Check if all 16 questions are done
+      const allAnswered = QUESTIONS.every(q => {
+        const a = parsed[q.id]
+        return a && (a.status === 'resolved' || a.status === 'low_confidence' || a.status === 'skipped')
+      })
+      if (allAnswered && Object.keys(parsed).length >= QUESTIONS.length) {
+        setAllDone(true)
+        return
+      }
+
+      // Restore saved index — never compute firstUnanswered to avoid jumps
+      let idx = 0
+      if (savedIdx !== null) {
+        const n = parseInt(savedIdx, 10)
+        if (!isNaN(n) && n >= 0 && n < QUESTIONS.length) idx = n
+      }
+      setCurrentIdx(idx)
+      restoreQuestionState(parsed, idx)
     } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Focus textarea when question changes
+  // Focus textarea when question/phase changes
   useEffect(() => {
     if (phase === 'idle') setTimeout(() => textareaRef.current?.focus(), 100)
     if (phase === 'clarifying') setTimeout(() => clarifyRef.current?.focus(), 100)
@@ -182,8 +143,9 @@ export default function FounderIntakePage() {
   const answeredCount = Object.values(answers).filter(
     a => a.status === 'resolved' || a.status === 'low_confidence' || a.status === 'skipped'
   ).length
-  const progress = Math.round((answeredCount / totalQ) * 100)
+  const progress = Math.round(((currentIdx) / totalQ) * 100)
 
+  // ── Save answer to state + localStorage ───────────────────────
   function saveAnswer(answer: IntakeQuestionAnswer) {
     const updated = { ...answers, [answer.questionId]: answer }
     setAnswers(updated)
@@ -201,25 +163,31 @@ export default function FounderIntakePage() {
     setErrorMsg('')
   }
 
+  // ── Advance: always sequential, never skip questions ──────────
   function advance(updatedAnswers: Block1AIAnswers) {
     const nextIdx = currentIdx + 1
     if (nextIdx >= totalQ) {
       setAllDone(true)
       return
     }
-    const nextUnanswered = QUESTIONS.findIndex((q, i) => {
-      if (i < nextIdx) return false
-      const a = updatedAnswers[q.id]
-      return !a || (a.status !== 'resolved' && a.status !== 'low_confidence' && a.status !== 'skipped')
-    })
-    if (nextUnanswered === -1) {
-      setAllDone(true)
-      return
-    }
-    setCurrentIdx(nextUnanswered)
-    resetQuestionState()
+    setCurrentIdx(nextIdx)
+    saveIdx(nextIdx)
+    restoreQuestionState(updatedAnswers, nextIdx)
   }
 
+  // ── Jump to specific question (back button / review) ──────────
+  function jumpToQuestion(idx: number) {
+    setCurrentIdx(idx)
+    setAllDone(false)
+    saveIdx(idx)
+    restoreQuestionState(answers, idx)
+  }
+
+  function handleBack() {
+    if (currentIdx > 0) jumpToQuestion(currentIdx - 1)
+  }
+
+  // ── AI API call ───────────────────────────────────────────────
   async function callClarify(
     qId: string,
     qText: string,
@@ -241,6 +209,7 @@ export default function FounderIntakePage() {
     }>
   }
 
+  // ── Submit main answer ────────────────────────────────────────
   async function handleSubmitMain() {
     const input = mainInput.trim()
     if (!input) return
@@ -251,7 +220,9 @@ export default function FounderIntakePage() {
       const result = await callClarify(currentQ.id, currentQ.text, input, [])
       if (result.done) {
         const answer: IntakeQuestionAnswer = {
-          questionId: currentQ.id, rawAnswer: input, clarificationHistory: [],
+          questionId: currentQ.id,
+          rawAnswer: input,
+          clarificationHistory: [],
           finalClarifiedAnswer: result.finalClarifiedAnswer ?? input,
           finalTag: result.finalTag ?? '',
           confidence: result.confidence ?? 'low',
@@ -259,7 +230,7 @@ export default function FounderIntakePage() {
         }
         const updated = saveAnswer(answer)
         setPhase('resolved')
-        setTimeout(() => advance(updated), 1400)
+        setTimeout(() => advance(updated), 1600)
       } else {
         setClarifyingQuestion(result.clarifyingQuestion ?? 'Уточните, пожалуйста.')
         setClarificationHistory([{ role: 'ai', content: result.clarifyingQuestion ?? '' }])
@@ -271,6 +242,7 @@ export default function FounderIntakePage() {
     }
   }
 
+  // ── Submit clarification answer ───────────────────────────────
   async function handleSubmitClarification() {
     const input = clarificationInput.trim()
     if (!input) return
@@ -284,7 +256,8 @@ export default function FounderIntakePage() {
       const result = await callClarify(currentQ.id, currentQ.text, rawAnswer, newHistory)
       if (result.done) {
         const answer: IntakeQuestionAnswer = {
-          questionId: currentQ.id, rawAnswer,
+          questionId: currentQ.id,
+          rawAnswer,
           clarificationHistory: newHistory,
           finalClarifiedAnswer: result.finalClarifiedAnswer ?? rawAnswer,
           finalTag: result.finalTag ?? '',
@@ -293,7 +266,7 @@ export default function FounderIntakePage() {
         }
         const updated = saveAnswer(answer)
         setPhase('resolved')
-        setTimeout(() => advance(updated), 1400)
+        setTimeout(() => advance(updated), 1600)
       } else {
         const updatedHistory: ClarificationMessage[] = [
           ...newHistory,
@@ -310,24 +283,10 @@ export default function FounderIntakePage() {
     }
   }
 
-  function jumpToQuestion(idx: number) {
-    const prevAnswer = answers[QUESTIONS[idx]?.id]
-    setCurrentIdx(idx)
-    setAllDone(false)
-    resetQuestionState()
-    // Restore raw input if question was previously answered
-    if (prevAnswer?.rawAnswer) {
-      setMainInput(prevAnswer.rawAnswer)
-    }
-  }
-
-  function handleBack() {
-    if (currentIdx > 0) jumpToQuestion(currentIdx - 1)
-  }
-
   const isLoading = phase === 'loading' || phase === 'clarifying_loading'
+  const currentAnswer = currentQ ? answers[currentQ.id] : undefined
 
-  // ── All done state ──────────────────────────────────────────
+  // ── All done screen ───────────────────────────────────────────
 
   if (allDone) {
     return (
@@ -339,41 +298,31 @@ export default function FounderIntakePage() {
           <div style={{ fontSize: '11px', color: '#9B8A7A', letterSpacing: '0.08em', marginBottom: '8px', textTransform: 'uppercase' }}>
             Блок 1 — Распаковка основателя
           </div>
-          <h1 style={{ fontSize: '22px', color: '#F2EBE1', fontWeight: 500, margin: 0 }}>
-            Блок завершён
-          </h1>
+          <h1 style={{ fontSize: '22px', color: '#F2EBE1', fontWeight: 500, margin: 0 }}>Блок завершён</h1>
           <p style={{ fontSize: '14px', color: '#9B8A7A', margin: '8px 0 0' }}>
             {answeredCount} из {totalQ} вопросов зафиксированы
           </p>
         </div>
 
-        {/* Summary of all answers */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '32px' }}>
           {QUESTIONS.map((q, i) => {
             const a = answers[q.id]
             if (!a) return null
             return (
-              <div key={q.id} style={{
-                background: '#1A1510',
-                border: '1px solid #2A2018',
-                borderRadius: '10px',
-                padding: '14px 16px',
-                cursor: 'pointer',
-              }}
+              <div key={q.id}
                 onClick={() => jumpToQuestion(i)}
+                style={{ background: '#1A1510', border: '1px solid #2A2018', borderRadius: '10px', padding: '14px 16px', cursor: 'pointer' }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: a.status !== 'skipped' ? '6px' : 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: a.finalClarifiedAnswer ? '6px' : 0 }}>
                   <span style={{ fontSize: '11px', color: '#5A4A3A', flexShrink: 0 }}>В{i + 1}</span>
                   <span style={{ fontSize: '13px', color: '#9B8A7A', flex: 1 }}>{q.text.slice(0, 60)}...</span>
-                  {a.status === 'skipped' ? (
-                    <span style={{ fontSize: '11px', color: '#5A4A3A' }}>пропущен</span>
-                  ) : a.finalTag ? (
+                  {a.finalTag && a.status !== 'skipped' ? (
                     <span style={{ fontSize: '11px', color: '#C17F3E', background: '#2A1E10', padding: '2px 8px', borderRadius: '4px', flexShrink: 0 }}>
                       {AI_TAG_LABELS[a.finalTag] ?? a.finalTag}
                     </span>
-                  ) : null}
+                  ) : <span style={{ fontSize: '11px', color: '#5A4A3A' }}>пропущен</span>}
                 </div>
-                {a.status !== 'skipped' && a.finalClarifiedAnswer && (
+                {a.finalClarifiedAnswer && (
                   <div style={{ fontSize: '13px', color: '#7A6A5A', lineHeight: 1.4, paddingLeft: '24px' }}>
                     {a.finalClarifiedAnswer}
                   </div>
@@ -384,23 +333,10 @@ export default function FounderIntakePage() {
         </div>
 
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <button
-            onClick={() => router.push('/assessment')}
-            style={{
-              background: '#C17F3E', color: '#0F0D0A', border: 'none',
-              borderRadius: '8px', padding: '12px 24px', fontSize: '14px',
-              fontWeight: 600, cursor: 'pointer',
-            }}
-          >
+          <button onClick={() => router.push('/assessment')} style={{ background: '#C17F3E', color: '#0F0D0A', border: 'none', borderRadius: '8px', padding: '12px 24px', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}>
             Перейти к следующему блоку
           </button>
-          <button
-            onClick={() => jumpToQuestion(0)}
-            style={{
-              background: 'transparent', border: '1px solid #2A2018', color: '#9B8A7A',
-              borderRadius: '8px', padding: '12px 16px', fontSize: '13px', cursor: 'pointer',
-            }}
-          >
+          <button onClick={() => { saveIdx(0); jumpToQuestion(0) }} style={{ background: 'transparent', border: '1px solid #2A2018', color: '#9B8A7A', borderRadius: '8px', padding: '12px 16px', fontSize: '13px', cursor: 'pointer' }}>
             Пройти заново
           </button>
         </div>
@@ -408,7 +344,7 @@ export default function FounderIntakePage() {
     )
   }
 
-  // ── Question flow ───────────────────────────────────────────
+  // ── Question flow ─────────────────────────────────────────────
 
   return (
     <div style={{ maxWidth: '640px' }}>
@@ -420,9 +356,7 @@ export default function FounderIntakePage() {
         <div style={{ fontSize: '11px', color: '#9B8A7A', letterSpacing: '0.08em', marginBottom: '8px', textTransform: 'uppercase' }}>
           Блок 1 — Распаковка основателя
         </div>
-        <h1 style={{ fontSize: '22px', color: '#F2EBE1', fontWeight: 500, margin: 0 }}>
-          Расскажите своими словами
-        </h1>
+        <h1 style={{ fontSize: '22px', color: '#F2EBE1', fontWeight: 500, margin: 0 }}>Расскажите своими словами</h1>
         <p style={{ fontSize: '14px', color: '#9B8A7A', margin: '8px 0 0' }}>
           AI уточнит смысл, если нужно — и зафиксирует ваш профиль
         </p>
@@ -431,7 +365,7 @@ export default function FounderIntakePage() {
       {/* Progress */}
       <div style={{ marginBottom: '40px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-          <span style={{ fontSize: '12px', color: '#9B8A7A' }}>{currentQ.section}</span>
+          <span style={{ fontSize: '12px', color: '#9B8A7A' }}>{currentQ?.section}</span>
           <span style={{ fontSize: '12px', color: '#9B8A7A' }}>Вопрос {currentIdx + 1} из {totalQ}</span>
         </div>
         <div style={{ height: '2px', background: '#2A2018', borderRadius: '1px', overflow: 'hidden' }}>
@@ -441,16 +375,18 @@ export default function FounderIntakePage() {
 
       {/* Question card */}
       <div style={{ background: '#1A1510', border: '1px solid #2A2018', borderRadius: '12px', padding: '32px' }}>
+
+        {/* Question header */}
         <div style={{ marginBottom: '24px' }}>
           <div style={{ fontSize: '11px', color: '#C17F3E', letterSpacing: '0.08em', marginBottom: '12px' }}>
             ВОПРОС {currentIdx + 1}
           </div>
           <p style={{ fontSize: '17px', color: '#F2EBE1', margin: 0, lineHeight: 1.5 }}>
-            {currentQ.text}
+            {currentQ?.text}
           </p>
         </div>
 
-        {/* Main input */}
+        {/* ── idle / loading / error: main input ── */}
         {(phase === 'idle' || phase === 'loading' || (phase === 'error' && !clarifyingQuestion)) && (
           <div style={{ marginBottom: '16px' }}>
             <textarea
@@ -458,7 +394,6 @@ export default function FounderIntakePage() {
               value={mainInput}
               onChange={e => setMainInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); if (!isLoading) handleSubmitMain() } }}
-              placeholder={currentQ.placeholder}
               disabled={isLoading}
               rows={4}
               style={{
@@ -472,7 +407,7 @@ export default function FounderIntakePage() {
           </div>
         )}
 
-        {/* Loading */}
+        {/* ── loading indicator ── */}
         {phase === 'loading' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', padding: '12px 0' }}>
             <LoadingDots />
@@ -480,7 +415,7 @@ export default function FounderIntakePage() {
           </div>
         )}
 
-        {/* Clarifying */}
+        {/* ── clarifying flow ── */}
         {(phase === 'clarifying' || phase === 'clarifying_loading') && (
           <div style={{ marginBottom: '20px' }}>
             <div style={{ background: '#0F0D0A', border: '1px solid #2A2018', borderRadius: '8px', padding: '12px 14px', marginBottom: '16px' }}>
@@ -515,30 +450,27 @@ export default function FounderIntakePage() {
           </div>
         )}
 
-        {/* Resolved */}
-        {phase === 'resolved' && (() => {
-          const a = answers[currentQ.id]
-          return (
-            <div style={{ background: '#0F150D', border: '1px solid #2A3820', borderRadius: '8px', padding: '16px', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-              <span style={{ fontSize: '18px', flexShrink: 0 }}>✓</span>
-              <div>
-                <div style={{ fontSize: '13px', color: '#7AB87A', marginBottom: '4px' }}>Ответ зафиксирован</div>
-                {a?.finalClarifiedAnswer && (
-                  <div style={{ fontSize: '14px', color: '#9B8A7A', lineHeight: 1.4 }}>{a.finalClarifiedAnswer}</div>
-                )}
-                {a?.finalTag && (
-                  <div style={{ marginTop: '8px' }}>
-                    <span style={{ fontSize: '11px', color: '#C17F3E', background: '#2A1E10', padding: '3px 8px', borderRadius: '4px' }}>
-                      {AI_TAG_LABELS[a.finalTag] ?? a.finalTag}
-                    </span>
-                  </div>
-                )}
-              </div>
+        {/* ── resolved state ── */}
+        {phase === 'resolved' && (
+          <div style={{ background: '#0F150D', border: '1px solid #2A3820', borderRadius: '8px', padding: '16px', display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '16px' }}>
+            <span style={{ fontSize: '18px', flexShrink: 0 }}>✓</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: '13px', color: '#7AB87A', marginBottom: '6px' }}>Ответ зафиксирован</div>
+              {currentAnswer?.finalClarifiedAnswer && (
+                <div style={{ fontSize: '14px', color: '#9B8A7A', lineHeight: 1.4, marginBottom: '8px' }}>
+                  {currentAnswer.finalClarifiedAnswer}
+                </div>
+              )}
+              {currentAnswer?.finalTag && (
+                <span style={{ fontSize: '11px', color: '#C17F3E', background: '#2A1E10', padding: '3px 8px', borderRadius: '4px' }}>
+                  {AI_TAG_LABELS[currentAnswer.finalTag] ?? currentAnswer.finalTag}
+                </span>
+              )}
             </div>
-          )
-        })()}
+          </div>
+        )}
 
-        {/* Error */}
+        {/* ── error state ── */}
         {phase === 'error' && (
           <div style={{ background: '#150D0D', border: '1px solid #3A2020', borderRadius: '8px', padding: '14px 16px', marginBottom: '16px' }}>
             <div style={{ fontSize: '13px', color: '#C07070', marginBottom: '8px' }}>{errorMsg}</div>
@@ -548,35 +480,63 @@ export default function FounderIntakePage() {
           </div>
         )}
 
-        {/* Buttons */}
-        {phase !== 'resolved' && (
-          <div style={{ display: 'flex', gap: '12px', marginTop: '8px', alignItems: 'center' }}>
-            {currentIdx > 0 && !isLoading && phase !== 'clarifying' && (
-              <button onClick={handleBack} style={{ background: 'transparent', border: '1px solid #2A2018', color: '#9B8A7A', borderRadius: '8px', padding: '12px 16px', fontSize: '13px', cursor: 'pointer' }}>
-                ← Назад
-              </button>
-            )}
-            {(phase === 'idle' || phase === 'loading' || phase === 'error') && (
-              <button
-                onClick={handleSubmitMain}
-                disabled={isLoading || !mainInput.trim()}
-                style={{ background: '#C17F3E', color: '#0F0D0A', border: 'none', borderRadius: '8px', padding: '12px 24px', fontSize: '14px', fontWeight: 600, cursor: (isLoading || !mainInput.trim()) ? 'not-allowed' : 'pointer', opacity: (isLoading || !mainInput.trim()) ? 0.4 : 1, transition: 'opacity 0.2s' }}
-              >
-                {isLoading ? 'Обрабатываю...' : 'Продолжить'}
-              </button>
-            )}
-            {(phase === 'clarifying' || phase === 'clarifying_loading') && (
-              <button onClick={handleSubmitClarification} disabled={isLoading || !clarificationInput.trim()} style={{ background: '#C17F3E', color: '#0F0D0A', border: 'none', borderRadius: '8px', padding: '12px 24px', fontSize: '14px', fontWeight: 600, cursor: (isLoading || !clarificationInput.trim()) ? 'not-allowed' : 'pointer', opacity: (isLoading || !clarificationInput.trim()) ? 0.4 : 1 }}>
-                {isLoading ? 'Обрабатываю...' : 'Ответить'}
-              </button>
-            )}
-          </div>
-        )}
-      </div>
+        {/* ── Action buttons ── */}
+        <div style={{ display: 'flex', gap: '12px', marginTop: '8px', alignItems: 'center' }}>
 
+          {/* Back */}
+          {currentIdx > 0 && !isLoading && phase !== 'clarifying' && phase !== 'clarifying_loading' && (
+            <button onClick={handleBack} style={{ background: 'transparent', border: '1px solid #2A2018', color: '#9B8A7A', borderRadius: '8px', padding: '12px 16px', fontSize: '13px', cursor: 'pointer' }}>
+              ← Назад
+            </button>
+          )}
+
+          {/* Continue — main input */}
+          {(phase === 'idle' || phase === 'loading' || phase === 'error') && (
+            <button
+              onClick={handleSubmitMain}
+              disabled={isLoading || !mainInput.trim()}
+              style={{ background: '#C17F3E', color: '#0F0D0A', border: 'none', borderRadius: '8px', padding: '12px 24px', fontSize: '14px', fontWeight: 600, cursor: (isLoading || !mainInput.trim()) ? 'not-allowed' : 'pointer', opacity: (isLoading || !mainInput.trim()) ? 0.4 : 1, transition: 'opacity 0.2s' }}
+            >
+              {isLoading ? 'Обрабатываю...' : 'Продолжить'}
+            </button>
+          )}
+
+          {/* Submit clarification */}
+          {(phase === 'clarifying' || phase === 'clarifying_loading') && (
+            <button
+              onClick={handleSubmitClarification}
+              disabled={isLoading || !clarificationInput.trim()}
+              style={{ background: '#C17F3E', color: '#0F0D0A', border: 'none', borderRadius: '8px', padding: '12px 24px', fontSize: '14px', fontWeight: 600, cursor: (isLoading || !clarificationInput.trim()) ? 'not-allowed' : 'pointer', opacity: (isLoading || !clarificationInput.trim()) ? 0.4 : 1 }}
+            >
+              {isLoading ? 'Обрабатываю...' : 'Ответить'}
+            </button>
+          )}
+
+          {/* Resolved: "Далее" button (skip re-calling AI) + "Изменить" */}
+          {phase === 'resolved' && (
+            <>
+              <button
+                onClick={() => advance(answers)}
+                style={{ background: '#C17F3E', color: '#0F0D0A', border: 'none', borderRadius: '8px', padding: '12px 24px', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Далее →
+              </button>
+              <button
+                onClick={() => { setPhase('idle'); setMainInput(currentAnswer?.rawAnswer ?? '') }}
+                style={{ background: 'transparent', border: '1px solid #2A2018', color: '#9B8A7A', borderRadius: '8px', padding: '12px 16px', fontSize: '13px', cursor: 'pointer' }}
+              >
+                Изменить
+              </button>
+            </>
+          )}
+
+        </div>
+      </div>
     </div>
   )
 }
+
+// ── Loading dots ───────────────────────────────────────────────
 
 function LoadingDots() {
   return (
