@@ -159,6 +159,13 @@ export default function EntreCompPage() {
     else { setScreen(s => s - 1); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   }
 
+  const handleReset = () => {
+    try { localStorage.removeItem(ENTRECOMP_V2_STORAGE_KEY) } catch {}
+    setAnswers(EMPTY)
+    setScreen(0)
+    setShowErrors(false)
+  }
+
   const currentScenario = !isEvidenceScreen ? SCENARIOS[screen] : null
 
   return (
@@ -227,6 +234,16 @@ export default function EntreCompPage() {
             {isLast ? 'Завершить диагностику →' : 'Далее →'}
           </button>
         </div>
+      </div>
+
+      {/* Reset */}
+      <div style={{ textAlign: 'center', marginTop: '20px' }}>
+        <button onClick={handleReset} style={{
+          background: 'transparent', border: 'none',
+          color: '#4A3A2A', fontSize: '12px', cursor: 'pointer',
+        }}>
+          Сбросить ответы блока
+        </button>
       </div>
 
     </div>

@@ -312,8 +312,8 @@ export function calcValuesScores(a: ValuesAnswers): ValuesScores {
     return filled.length ? filled.reduce((s, v) => s + v, 0) / filled.length : 0
   }
   // q12 and q15 are reverse-scored for 1–6 scale: reversed = 7 - answer
-  const q12r = a.q12 > 0 ? 7 - a.q12 : 0
-  const q15r = a.q15 > 0 ? 7 - a.q15 : 0
+  const q12r = a.q12 > 0 ? 6 - a.q12 : 0
+  const q15r = a.q15 > 0 ? 6 - a.q15 : 0
   const clusters = [
     avg(a.q1, a.q2, a.q3),
     avg(a.q4, a.q5, a.q6),

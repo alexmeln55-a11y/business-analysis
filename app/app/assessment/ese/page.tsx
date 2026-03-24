@@ -76,11 +76,9 @@ function valueToLabel(v: number): string {
   switch (v) {
     case 1: return 'Совсем не уверен'
     case 2: return 'Не уверен'
-    case 3: return 'Ниже среднего'
-    case 4: return 'Средняя уверенность'
-    case 5: return 'Уверен'
-    case 6: return 'Очень уверен'
-    case 7: return 'Полностью уверен'
+    case 3: return 'Средняя уверенность'
+    case 4: return 'Уверен'
+    case 5: return 'Полностью уверен'
     default: return ''
   }
 }
@@ -143,6 +141,17 @@ export default function ESEPage() {
     else { setPhase(p => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   }
 
+  const handleReset = () => {
+    try {
+      localStorage.removeItem(ESE_STORAGE_KEY)
+      localStorage.removeItem(ESE_NO_EXPERIENCE_STORAGE_KEY)
+    } catch {}
+    setAnswers(EMPTY_ANSWERS)
+    setNoExp(EMPTY_NO_EXP)
+    setPhase(0)
+    setShowErrors(false)
+  }
+
   return (
     <div style={{ maxWidth: '680px' }}>
 
@@ -182,7 +191,7 @@ export default function ESEPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontSize: '13px', color: '#6B5D52' }}>1 — совсем не уверен</span>
           <span style={{ fontSize: '13px', color: '#6B5D52' }}>···</span>
-          <span style={{ fontSize: '13px', color: '#CDBEAE' }}>7 — полностью уверен</span>
+          <span style={{ fontSize: '13px', color: '#CDBEAE' }}>5 — полностью уверен</span>
         </div>
       </div>
 
@@ -240,6 +249,16 @@ export default function ESEPage() {
         </div>
       </div>
 
+      {/* Reset */}
+      <div style={{ textAlign: 'center', marginTop: '20px' }}>
+        <button onClick={handleReset} style={{
+          background: 'transparent', border: 'none',
+          color: '#4A3A2A', fontSize: '12px', cursor: 'pointer',
+        }}>
+          Сбросить ответы блока
+        </button>
+      </div>
+
     </div>
   )
 }
@@ -280,7 +299,7 @@ function ESEQuestion({
       {/* Scale buttons */}
       <div style={{ marginBottom: '14px' }}>
         <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap' }}>
-          {[1, 2, 3, 4, 5, 6, 7].map((n) => {
+          {[1, 2, 3, 4, 5].map((n) => {
             const selected = !noExperience && value === n
             return (
               <button
@@ -306,7 +325,7 @@ function ESEQuestion({
         {/* Degree label — derived purely from value, hidden when noExperience */}
         {value > 0 && !noExperience && (
           <div style={{ marginTop: '10px', fontSize: '12px', color: '#B57A56', fontWeight: 500 }}>
-            {value}/7 — {valueToLabel(value)}
+            {value}/5 — {valueToLabel(value)}
           </div>
         )}
 

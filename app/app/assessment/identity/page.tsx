@@ -159,6 +159,17 @@ export default function IdentityPage() {
     else { setSection(s => s - 1); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   }
 
+  const handleReset = () => {
+    try {
+      localStorage.removeItem(IDENTITY_STORAGE_KEY)
+      localStorage.removeItem(IDENTITY_SCENARIOS_STORAGE_KEY)
+    } catch {}
+    setAnswers(EMPTY_SCALE)
+    setScenarios(EMPTY_SCENARIOS)
+    setSection(0)
+    setShowErrors(false)
+  }
+
   return (
     <div style={{ maxWidth: '680px' }}>
 
@@ -300,6 +311,16 @@ export default function IdentityPage() {
             {isLast ? 'Сохранить и к обзору →' : 'Далее →'}
           </button>
         </div>
+      </div>
+
+      {/* Reset */}
+      <div style={{ textAlign: 'center', marginTop: '20px' }}>
+        <button onClick={handleReset} style={{
+          background: 'transparent', border: 'none',
+          color: '#4A3A2A', fontSize: '12px', cursor: 'pointer',
+        }}>
+          Сбросить ответы блока
+        </button>
       </div>
 
     </div>
