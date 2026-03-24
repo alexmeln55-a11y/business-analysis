@@ -521,6 +521,7 @@ export const AI_TAG_LABELS: Record<string, string> = {
   low_risk_entry_fit: 'Осторожный вход',
   capital_capacity: 'Финансовый ресурс',
   risk_tolerance: 'Готовность к риску',
+  no_signal: 'Нет подтверждённого сигнала',
 }
 
 // ── EntreComp v2: scenario + evidence ────────────────────────

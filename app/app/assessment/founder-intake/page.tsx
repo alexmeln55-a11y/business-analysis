@@ -357,7 +357,11 @@ export default function FounderIntakePage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: a.finalClarifiedAnswer ? '6px' : 0 }}>
                   <span style={{ fontSize: '11px', color: '#5A4A3A', flexShrink: 0 }}>В{i + 1}</span>
                   <span style={{ fontSize: '13px', color: '#9B8A7A', flex: 1 }}>{q.text.slice(0, 60)}...</span>
-                  {a.finalTag && a.status !== 'skipped' ? (
+                  {a.finalTag === 'no_signal' ? (
+                    <span style={{ fontSize: '11px', color: '#6A7A8A', background: '#1A1E22', padding: '2px 8px', borderRadius: '4px', flexShrink: 0 }}>
+                      нет сигнала
+                    </span>
+                  ) : a.finalTag && a.status !== 'skipped' ? (
                     <span style={{ fontSize: '11px', color: '#C17F3E', background: '#2A1E10', padding: '2px 8px', borderRadius: '4px', flexShrink: 0 }}>
                       {AI_TAG_LABELS[a.finalTag] ?? a.finalTag}
                     </span>
@@ -494,24 +498,35 @@ export default function FounderIntakePage() {
         )}
 
         {/* ── resolved state ── */}
-        {phase === 'resolved' && (
-          <div style={{ background: '#0F150D', border: '1px solid #2A3820', borderRadius: '8px', padding: '16px', display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '16px' }}>
-            <span style={{ fontSize: '18px', flexShrink: 0 }}>✓</span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '13px', color: '#7AB87A', marginBottom: '6px' }}>Ответ зафиксирован</div>
-              {currentAnswer?.finalClarifiedAnswer && (
-                <div style={{ fontSize: '14px', color: '#9B8A7A', lineHeight: 1.4, marginBottom: '8px' }}>
-                  {currentAnswer.finalClarifiedAnswer}
+        {phase === 'resolved' && (() => {
+          const isNoSignal = currentAnswer?.finalTag === 'no_signal'
+          return (
+            <div style={{
+              background: isNoSignal ? '#111214' : '#0F150D',
+              border: `1px solid ${isNoSignal ? '#2A2E35' : '#2A3820'}`,
+              borderRadius: '8px', padding: '16px', display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '16px',
+            }}>
+              <span style={{ fontSize: '18px', flexShrink: 0 }}>{isNoSignal ? '—' : '✓'}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '13px', color: isNoSignal ? '#7A8A9A' : '#7AB87A', marginBottom: '6px' }}>
+                  {isNoSignal ? 'Зафиксировано: нет подтверждённого сигнала' : 'Ответ зафиксирован'}
                 </div>
-              )}
-              {currentAnswer?.finalTag && (
-                <span style={{ fontSize: '11px', color: '#C17F3E', background: '#2A1E10', padding: '3px 8px', borderRadius: '4px' }}>
-                  {AI_TAG_LABELS[currentAnswer.finalTag] ?? currentAnswer.finalTag}
-                </span>
-              )}
+                {currentAnswer?.finalClarifiedAnswer && (
+                  <div style={{ fontSize: '14px', color: '#9B8A7A', lineHeight: 1.4, marginBottom: isNoSignal ? 0 : '8px' }}>
+                    {isNoSignal
+                      ? currentAnswer.rawAnswer
+                      : currentAnswer.finalClarifiedAnswer}
+                  </div>
+                )}
+                {!isNoSignal && currentAnswer?.finalTag && (
+                  <span style={{ fontSize: '11px', color: '#C17F3E', background: '#2A1E10', padding: '3px 8px', borderRadius: '4px' }}>
+                    {AI_TAG_LABELS[currentAnswer.finalTag] ?? currentAnswer.finalTag}
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )
+        })()}
 
         {/* ── error state ── */}
         {phase === 'error' && (
