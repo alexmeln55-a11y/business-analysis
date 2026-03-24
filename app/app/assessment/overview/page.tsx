@@ -258,8 +258,6 @@ export default function AssessmentOverviewPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaded, allDone])
 
-  if (!loaded) return null
-
   return (
     <div style={{ maxWidth: '700px' }}>
 
@@ -271,38 +269,37 @@ export default function AssessmentOverviewPage() {
       </Link>
 
       {/* ── Единый профиль основателя ────────────────────── */}
-      {profile.completedBlocks > 0 && (
-        <>
-          {!allDone && (
-            <div style={{ marginBottom: '24px' }}>
-              <div style={{ fontSize: '13px', color: '#9B8A7A', marginBottom: '12px' }}>
-                Заполнено {profile.completedBlocks} из 6 блоков — чем больше, тем точнее профиль
-              </div>
-              <Link href="/assessment" style={{ textDecoration: 'none' }}>
-                <button style={{
-                  backgroundColor: 'transparent', color: '#B57A56',
-                  border: '1px solid rgba(181,122,86,0.30)', borderRadius: '14px',
-                  padding: '10px 20px', fontSize: '14px', cursor: 'pointer',
-                }}>
-                  Продолжить диагностику →
-                </button>
-              </Link>
+      <>
+        {loaded && !allDone && profile.completedBlocks > 0 && (
+          <div style={{ marginBottom: '24px' }}>
+            <div style={{ fontSize: '13px', color: '#9B8A7A', marginBottom: '12px' }}>
+              Заполнено {profile.completedBlocks} из 6 блоков — чем больше, тем точнее профиль
             </div>
-          )}
+            <Link href="/assessment" style={{ textDecoration: 'none' }}>
+              <button style={{
+                backgroundColor: 'transparent', color: '#B57A56',
+                border: '1px solid rgba(181,122,86,0.30)', borderRadius: '14px',
+                padding: '10px 20px', fontSize: '14px', cursor: 'pointer',
+              }}>
+                Продолжить диагностику →
+              </button>
+            </Link>
+          </div>
+        )}
 
-          {/* Текстовый профиль */}
-          <div style={{
-            backgroundColor: '#1F1A16',
-            border: '1px solid rgba(181,122,86,0.20)',
-            borderRadius: '20px',
-            padding: '28px 32px',
-            marginBottom: '28px',
-          }}>
-            {aiLoading ? (
-              <p style={{ fontSize: '15px', color: '#6B5D52', fontStyle: 'italic', margin: 0 }}>
-                Анализируем ваш профиль...
-              </p>
-            ) : aiSynthesis ? (
+        {/* Текстовый профиль */}
+        <div style={{
+          backgroundColor: '#1F1A16',
+          border: '1px solid rgba(181,122,86,0.20)',
+          borderRadius: '20px',
+          padding: '28px 32px',
+          marginBottom: '28px',
+        }}>
+          {!loaded || aiLoading ? (
+            <p style={{ fontSize: '15px', color: '#6B5D52', fontStyle: 'italic', margin: 0 }}>
+              Анализируем ваш профиль...
+            </p>
+          ) : aiSynthesis ? (
               // AI-текст: 4 абзаца
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {[aiSynthesis.paragraph1, aiSynthesis.paragraph2, aiSynthesis.paragraph3, aiSynthesis.paragraph4]
@@ -347,8 +344,7 @@ export default function AssessmentOverviewPage() {
             )}
           </div>
 
-        </>
-      )}
+      </>
 
       {/* ── Разделитель ─────────────────────────────────────── */}
       <div style={{ height: '1px', backgroundColor: 'rgba(244,237,227,0.06)', margin: '8px 0 36px' }} />
