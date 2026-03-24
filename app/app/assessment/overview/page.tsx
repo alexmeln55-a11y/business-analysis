@@ -268,34 +268,11 @@ export default function AssessmentOverviewPage() {
           Профиль основателя
         </h1>
 
-        <div style={{
-          backgroundColor: allDone ? 'rgba(107,168,122,0.08)' : '#1F1A16',
-          border: allDone ? '1px solid rgba(107,168,122,0.25)' : '1px solid rgba(181,122,86,0.20)',
-          borderRadius: '18px', padding: '18px 22px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px',
-        }}>
-          <div>
-            <div style={{ fontSize: '15px', fontWeight: 600, color: allDone ? '#6BA87A' : '#D09062', marginBottom: '4px' }}>
-              {allDone ? 'Диагностика завершена' : `Заполнено ${profile.completedBlocks} из 6 блоков`}
-            </div>
-            {!allDone && (
-              <div style={{ fontSize: '13px', color: '#9B8A7A' }}>
-                Чем больше блоков заполнено, тем точнее профиль
-              </div>
-            )}
-          </div>
-          <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-            {[1, 2, 3, 4, 5, 6].map(n => (
-              <div key={n} style={{
-                width: '10px', height: '10px', borderRadius: '50%',
-                backgroundColor: n <= profile.completedBlocks ? '#6BA87A' : 'rgba(244,237,227,0.10)',
-              }} />
-            ))}
-          </div>
-        </div>
-
         {!allDone && (
-          <div style={{ marginTop: '12px' }}>
+          <div>
+            <div style={{ fontSize: '13px', color: '#9B8A7A', marginBottom: '12px' }}>
+              Заполнено {profile.completedBlocks} из 6 блоков — чем больше, тем точнее профиль
+            </div>
             <Link href="/assessment" style={{ textDecoration: 'none' }}>
               <button style={{
                 backgroundColor: 'transparent', color: '#B57A56',
