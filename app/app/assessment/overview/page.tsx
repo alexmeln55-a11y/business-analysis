@@ -484,7 +484,7 @@ export default function AssessmentOverviewPage() {
             </button>
           </Link>
         )}
-        <Link href="/assessment?show=1" style={{ textDecoration: 'none' }}>
+        <Link href="/assessment" style={{ textDecoration: 'none' }}>
           <button style={{
             width: '100%', backgroundColor: 'transparent', color: '#9B8A7A',
             border: '1px solid rgba(244,237,227,0.10)', borderRadius: '16px',

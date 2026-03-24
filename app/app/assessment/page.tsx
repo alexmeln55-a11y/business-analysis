@@ -1,7 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { BLOCK1_AI_STORAGE_KEY, ESE_STORAGE_KEY, HEXACO_STORAGE_KEY, VALUES_STORAGE_KEY, IDENTITY_STORAGE_KEY, ENTRECOMP_STORAGE_KEY } from '@/lib/assessment'
 
@@ -65,10 +64,7 @@ const STATUS_COLOR: Record<BlockStatus, string> = {
   upcoming: '#6B5D52',
 }
 
-function AssessmentPageInner() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const forceShow = searchParams.get('show') === '1'
+export default function AssessmentPage() {
   const [block1Done, setBlock1Done] = useState(false)
   const [block2Done, setBlock2Done] = useState(false)
   const [block3Done, setBlock3Done] = useState(false)
@@ -118,11 +114,6 @@ function AssessmentPageInner() {
 
   // All 6 must be done — block1 included
   const allDone = block1Done && block2Done && block3Done && block4Done && block5Done && block6Done
-
-  // Redirect to results if all blocks are complete (unless ?show=1 forces the list)
-  useEffect(() => {
-    if (loaded && allDone && !forceShow) router.replace('/assessment/overview')
-  }, [loaded, allDone, forceShow, router])
 
   // CTA: point to the first incomplete block (block1 always checked first)
   const ctaHref = allDone
@@ -302,13 +293,5 @@ function AssessmentPageInner() {
         <span style={{ fontSize: '13px', color: '#6B5D52' }}>{ctaNote}</span>
       </div>
     </div>
-  )
-}
-
-export default function AssessmentPage() {
-  return (
-    <Suspense>
-      <AssessmentPageInner />
-    </Suspense>
   )
 }
