@@ -1,6 +1,6 @@
 # Текущее состояние проекта
 
-Обновлено: 2026-03-23
+Обновлено: 2026-03-24
 
 ---
 
@@ -28,6 +28,7 @@
 | Assessment-05 | Блок 5 Identity: /assessment/identity, 3 типа × 5 вопросов (Fauchart & Gruber), шкала 1–5, dominant+secondary, Identity summary в overview | ✅ |
 | Assessment-06 | Блок 6 EntreComp: /assessment/entrecomp, 3 компетенции × 3 вопроса, шкала 1–5, EntreComp summary в overview | ✅ |
 | Assessment-07 | Финальный overview: buildFounderSummary, 4 синтетических секции (сильные стороны, риски, стиль запуска, fit), completion status, условный CTA | ✅ |
+| Assessment-01 | Блок 1 переделан в AI-распаковку: свободный текст, AI-уточнения (макс. 2 раунда), finalTag из whitelist, server-only prompts, защита от prompt injection | ✅ |
 
 ---
 
@@ -40,9 +41,18 @@
 - Detail-страница `/opportunities/[id]` показывает все 4 фильтра с разбором, foreign patterns, shortlist_reason
 - Список `/opportunities` показывает shortlist_reason под заголовком карточки
 - `/assessment` — обзор 6 блоков диагностики, все 6 блоков активны
-- `/assessment/founder-intake` — форма блока 1 (4 секции × 4 вопроса), autosave в localStorage
+- `/assessment/founder-intake` — блок 1 AI-распаковка: 8 вопросов, свободный текст, AI-уточнения, finalTag из whitelist, сохранение в localStorage (BLOCK1_AI_STORAGE_KEY)
 - `/assessment/overview` — итог блока 1 с 5 derived insights, CTA
 - Формы и кнопки отрисованы, но задизейблены (логика в следующем chunk)
+
+---
+
+## Важно: перед запуском блока 1
+
+Нужна переменная `ANTHROPIC_API_KEY` в `app/.env.local`:
+```
+ANTHROPIC_API_KEY=sk-ant-...
+```
 
 ---
 

@@ -6,81 +6,53 @@ import Link from 'next/link'
 import { HEXACO_STORAGE_KEY, type HEXACOAnswers } from '@/lib/assessment'
 
 const EMPTY: HEXACOAnswers = {
-  q1: 0, q2: 0, q3: 0, q4: 0,
-  q5: 0, q6: 0, q7: 0, q8: 0,
-  q9: 0, q10: 0, q11: 0, q12: 0,
-  q13: 0, q14: 0, q15: 0, q16: 0,
-  q17: 0, q18: 0, q19: 0, q20: 0,
-  q21: 0, q22: 0, q23: 0, q24: 0,
+  q1: 0, q2: 0, q3: 0, q4: 0, q5: 0, q6: 0,
+  q7: 0, q8: 0, q9: 0, q10: 0, q11: 0, q12: 0,
+  q13: 0, q14: 0, q15: 0, q16: 0, q17: 0, q18: 0,
+  q19: 0, q20: 0, q21: 0, q22: 0, q23: 0, q24: 0,
 }
 
-const FACTORS = [
-  {
-    number: 1,
-    title: 'Честность–Смиренность',
-    questions: [
-      { key: 'q1' as const, text: 'В работе с клиентами для меня важнее сохранить репутацию, чем «выжать максимум» из каждой сделки.' },
-      { key: 'q2' as const, text: 'Я готов отказаться от выгодного, но не совсем честного предложения, даже если никто об этом не узнает.' },
-      { key: 'q3' as const, text: 'Я открыт к обратной связи и признаю свои ошибки перед партнёрами и командой.' },
-      { key: 'q4' as const, text: 'Мне некомфортно завышать свои достижения или приукрашивать результаты ради выгоды.' },
-    ],
-  },
-  {
-    number: 2,
-    title: 'Эмоциональность',
-    questions: [
-      { key: 'q5' as const, text: 'Неудачи в проекте надолго выбивают меня из колеи.' },
-      { key: 'q6' as const, text: 'В стрессовых ситуациях, связанных с деньгами или ответственностью, мне трудно сохранять спокойствие.' },
-      { key: 'q7' as const, text: 'Перед важными решениями я часто переживаю так сильно, что это мешает действовать.' },
-      { key: 'q8' as const, text: 'Когда бизнес идёт плохо несколько месяцев подряд, я продолжаю действовать без паники.', reversed: true },
-    ],
-  },
-  {
-    number: 3,
-    title: 'Экстраверсия',
-    questions: [
-      { key: 'q9' as const, text: 'Мне нравится быть «лицом» проекта — выступать, презентовать, общаться с новыми людьми.' },
-      { key: 'q10' as const, text: 'Я легко завожу деловые знакомства на мероприятиях, в чатах и онлайн-сообществах.' },
-      { key: 'q11' as const, text: 'Общение с клиентами и партнёрами скорее заряжает меня энергией, чем утомляет.' },
-      { key: 'q12' as const, text: 'Я чувствую себя уверенно, когда нужно вести переговоры или публично отстаивать свою позицию.' },
-    ],
-  },
-  {
-    number: 4,
-    title: 'Доброжелательность',
-    questions: [
-      { key: 'q13' as const, text: 'В конфликтной ситуации я стараюсь сначала понять позицию другой стороны, а не сразу отстаивать своё.' },
-      { key: 'q14' as const, text: 'Я готов идти на разумные уступки, если это помогает сохранить долгосрочные отношения.' },
-      { key: 'q15' as const, text: 'Даже при жёстких переговорах я стараюсь оставаться корректным и уважительным.' },
-      { key: 'q16' as const, text: 'Мне сложно отказать клиенту или партнёру, даже когда это невыгодно для меня.' },
-    ],
-  },
-  {
-    number: 5,
-    title: 'Добросовестность',
-    questions: [
-      { key: 'q17' as const, text: 'Я обычно довожу начатые задачи до конца, даже если потерял к ним интерес.' },
-      { key: 'q18' as const, text: 'Я работаю по плану и умею организовать своё время так, чтобы успевать главное.' },
-      { key: 'q19' as const, text: 'Перед запуском нового шага я предпочитаю всё продумать, а не действовать «на авось».' },
-      { key: 'q20' as const, text: 'Я внимательно отношусь к деталям — договоры, цифры, сроки редко ускользают от моего внимания.' },
-    ],
-  },
-  {
-    number: 6,
-    title: 'Открытость к опыту',
-    questions: [
-      { key: 'q21' as const, text: 'Мне интересно пробовать новые форматы, инструменты и подходы в своём деле, даже если нет гарантий результата.' },
-      { key: 'q22' as const, text: 'Я часто ищу идеи вне своей отрасли — в других бизнесах, науке, искусстве, технологиях.' },
-      { key: 'q23' as const, text: 'Я люблю переосмысливать устоявшиеся правила и искать нестандартные решения для задач.' },
-      { key: 'q24' as const, text: 'Изменения на рынке я воспринимаю скорее как возможность, чем как угрозу.' },
-    ],
-  },
+// All 24 questions flat, grouped by factor for display
+const ALL_QUESTIONS: { key: keyof HEXACOAnswers; text: string; reversed?: boolean; factor: string }[] = [
+  // Factor 1: Честность–Смиренность
+  { key: 'q1', factor: 'Честность–Смиренность', text: 'В работе с клиентами для меня важнее сохранить репутацию, чем «выжать максимум» из каждой сделки.' },
+  { key: 'q2', factor: 'Честность–Смиренность', text: 'Я готов отказаться от выгодного, но не совсем честного предложения, даже если никто об этом не узнает.' },
+  { key: 'q3', factor: 'Честность–Смиренность', text: 'Я открыт к обратной связи и признаю свои ошибки перед партнёрами и командой.' },
+  { key: 'q4', factor: 'Честность–Смиренность', text: 'Мне некомфортно завышать свои достижения или приукрашивать результаты ради выгоды.' },
+  // Factor 2: Эмоциональность
+  { key: 'q5', factor: 'Эмоциональность', text: 'Неудачи в проекте надолго выбивают меня из колеи.' },
+  { key: 'q6', factor: 'Эмоциональность', text: 'В стрессовых ситуациях, связанных с деньгами или ответственностью, мне трудно сохранять спокойствие.' },
+  { key: 'q7', factor: 'Эмоциональность', text: 'Перед важными решениями я часто переживаю так сильно, что это мешает действовать.' },
+  { key: 'q8', factor: 'Эмоциональность', text: 'Когда бизнес идёт плохо несколько месяцев подряд, я продолжаю действовать без паники.', reversed: true },
+  // Factor 3: Экстраверсия
+  { key: 'q9', factor: 'Экстраверсия', text: 'Мне нравится быть «лицом» проекта — выступать, презентовать, общаться с новыми людьми.' },
+  { key: 'q10', factor: 'Экстраверсия', text: 'Я легко завожу деловые знакомства на мероприятиях, в чатах и онлайн-сообществах.' },
+  { key: 'q11', factor: 'Экстраверсия', text: 'Общение с клиентами и партнёрами скорее заряжает меня энергией, чем утомляет.' },
+  { key: 'q12', factor: 'Экстраверсия', text: 'Я чувствую себя уверенно, когда нужно вести переговоры или публично отстаивать свою позицию.' },
+  // Factor 4: Доброжелательность
+  { key: 'q13', factor: 'Доброжелательность', text: 'В конфликтной ситуации я стараюсь сначала понять позицию другой стороны, а не сразу отстаивать своё.' },
+  { key: 'q14', factor: 'Доброжелательность', text: 'Я готов идти на разумные уступки, если это помогает сохранить долгосрочные отношения.' },
+  { key: 'q15', factor: 'Доброжелательность', text: 'Даже при жёстких переговорах я стараюсь оставаться корректным и уважительным.' },
+  { key: 'q16', factor: 'Доброжелательность', text: 'Мне сложно отказать клиенту или партнёру, даже когда это невыгодно для меня.' },
+  // Factor 5: Добросовестность
+  { key: 'q17', factor: 'Добросовестность', text: 'Я обычно довожу начатые задачи до конца, даже если потерял к ним интерес.' },
+  { key: 'q18', factor: 'Добросовестность', text: 'Я работаю по плану и умею организовать своё время так, чтобы успевать главное.' },
+  { key: 'q19', factor: 'Добросовестность', text: 'Перед запуском нового шага я предпочитаю всё продумать, а не действовать «на авось».' },
+  { key: 'q20', factor: 'Добросовестность', text: 'Я внимательно отношусь к деталям — договоры, цифры, сроки редко ускользают от моего внимания.' },
+  // Factor 6: Открытость к опыту
+  { key: 'q21', factor: 'Открытость к опыту', text: 'Мне интересно пробовать новые форматы, инструменты и подходы в своём деле, даже если нет гарантий результата.' },
+  { key: 'q22', factor: 'Открытость к опыту', text: 'Я часто ищу идеи вне своей отрасли — в других бизнесах, науке, искусстве, технологиях.' },
+  { key: 'q23', factor: 'Открытость к опыту', text: 'Я люблю переосмысливать устоявшиеся правила и искать нестандартные решения для задач.' },
+  { key: 'q24', factor: 'Открытость к опыту', text: 'Изменения на рынке я воспринимаю скорее как возможность, чем как угрозу.' },
 ]
+
+const TOTAL = ALL_QUESTIONS.length // 24
 
 export default function HEXACOPage() {
   const router = useRouter()
-  const [factor, setFactor] = useState(0)
+  const [idx, setIdx] = useState(0)
   const [answers, setAnswers] = useState<HEXACOAnswers>(EMPTY)
+  const [showError, setShowError] = useState(false)
 
   useEffect(() => {
     try {
@@ -95,32 +67,38 @@ export default function HEXACOPage() {
     try { localStorage.setItem(HEXACO_STORAGE_KEY, JSON.stringify(next)) } catch {}
   }
 
-  const currentFactor = FACTORS[factor]
-  const isLast = factor === FACTORS.length - 1
-  const isFirst = factor === 0
+  const q = ALL_QUESTIONS[idx]
+  const isLast = idx === TOTAL - 1
 
   const handleNext = () => {
-    if (isLast) {
-      router.push('/assessment/overview')
-    } else {
-      setFactor(f => f + 1)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
+    if (answers[q.key] === 0) { setShowError(true); return }
+    setShowError(false)
+    if (isLast) router.push('/assessment/overview')
+    else { setIdx(i => i + 1); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   }
 
   const handleBack = () => {
-    if (isFirst) {
-      router.push('/assessment')
-    } else {
-      setFactor(f => f - 1)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+    setShowError(false)
+    if (idx === 0) router.push('/assessment')
+    else { setIdx(i => i - 1); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  }
+
+  // Auto-advance when scale is selected
+  const handleSelect = (key: keyof HEXACOAnswers, value: number) => {
+    updateAnswer(key, value)
+    setShowError(false)
+    if (!isLast) {
+      setTimeout(() => { setIdx(i => i + 1); window.scrollTo({ top: 0, behavior: 'smooth' }) }, 220)
     }
   }
+
+  // Find if factor changed from previous question
+  const prevFactor = idx > 0 ? ALL_QUESTIONS[idx - 1].factor : null
+  const isNewFactor = !prevFactor || prevFactor !== q.factor
 
   return (
     <div style={{ maxWidth: '680px' }}>
 
-      {/* Back */}
       <Link href="/assessment" style={{
         fontSize: '14px', color: '#9B8A7A', textDecoration: 'none',
         display: 'inline-block', marginBottom: '32px',
@@ -129,70 +107,99 @@ export default function HEXACOPage() {
       </Link>
 
       {/* Progress */}
-      <div style={{ marginBottom: '40px' }}>
+      <div style={{ marginBottom: '32px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
           <span style={{ fontSize: '12px', color: '#9B8A7A', letterSpacing: '0.06em' }}>
             БЛОК 3 ИЗ 6 · HEXACO
           </span>
           <span style={{ fontSize: '12px', color: '#9B8A7A' }}>
-            Фактор {factor + 1} из {FACTORS.length}
+            {idx + 1} из {TOTAL}
           </span>
         </div>
         <div style={{ height: '3px', borderRadius: '2px', backgroundColor: 'rgba(244,237,227,0.08)', overflow: 'hidden' }}>
           <div style={{
-            height: '100%',
-            width: `${((factor + 1) / FACTORS.length) * 100}%`,
-            backgroundColor: '#B57A56',
-            borderRadius: '2px',
-            transition: 'width 0.3s ease',
+            height: '100%', width: `${((idx + 1) / TOTAL) * 100}%`,
+            backgroundColor: '#B57A56', borderRadius: '2px', transition: 'width 0.3s ease',
           }} />
         </div>
       </div>
 
-      {/* Scale legend — shown only on first factor */}
-      {factor === 0 && (
+      {/* Factor label */}
+      {isNewFactor && (
         <div style={{
-          backgroundColor: '#1A1613', borderRadius: '16px', padding: '16px 20px',
-          border: '1px solid rgba(244,237,227,0.07)', marginBottom: '32px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          gap: '16px', flexWrap: 'wrap',
+          display: 'inline-flex', alignItems: 'center', gap: '6px',
+          backgroundColor: 'rgba(181,122,86,0.10)', borderRadius: '10px',
+          padding: '5px 12px', marginBottom: '24px',
         }}>
-          <span style={{ fontSize: '13px', color: '#9B8A7A' }}>Шкала оценки:</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#6B5D52' }}>1 — совсем не согласен</span>
-            <span style={{ fontSize: '13px', color: '#6B5D52' }}>···</span>
-            <span style={{ fontSize: '13px', color: '#CDBEAE' }}>5 — полностью согласен</span>
-          </div>
+          <span style={{ fontSize: '12px', color: '#D09062', fontWeight: 600, letterSpacing: '0.04em' }}>
+            {q.factor}
+          </span>
+        </div>
+      )}
+      {!isNewFactor && (
+        <div style={{ marginBottom: '24px' }}>
+          <span style={{ fontSize: '12px', color: '#6B5D52', letterSpacing: '0.04em' }}>{q.factor}</span>
         </div>
       )}
 
-      {/* Factor header */}
-      <div style={{ marginBottom: '28px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            width: '28px', height: '28px', borderRadius: '50%',
-            backgroundColor: 'rgba(181,122,86,0.18)',
-            border: '1px solid rgba(181,122,86,0.4)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          }}>
-            <span style={{ fontSize: '12px', fontWeight: 600, color: '#D09062' }}>{currentFactor.number}</span>
-          </div>
-          <h2 style={{ fontSize: '22px', fontWeight: 700, color: '#F4EDE3' }}>{currentFactor.title}</h2>
+      {/* Scale legend */}
+      <div style={{
+        backgroundColor: '#1A1613', borderRadius: '14px', padding: '12px 16px',
+        border: '1px solid rgba(244,237,227,0.07)', marginBottom: '24px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap',
+      }}>
+        <span style={{ fontSize: '12px', color: '#9B8A7A' }}>Насколько высказывание про вас:</span>
+        <div style={{ display: 'flex', gap: '6px' }}>
+          <span style={{ fontSize: '12px', color: '#6B5D52' }}>1 — не согласен</span>
+          <span style={{ fontSize: '12px', color: '#6B5D52' }}>···</span>
+          <span style={{ fontSize: '12px', color: '#CDBEAE' }}>5 — согласен</span>
         </div>
       </div>
 
-      {/* Questions */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '48px' }}>
-        {currentFactor.questions.map((q, i) => (
-          <Scale5Question
-            key={q.key}
-            number={(factor * 4) + i + 1}
-            text={q.text}
-            reversed={'reversed' in q && q.reversed === true}
-            value={answers[q.key]}
-            onChange={(v) => updateAnswer(q.key, v)}
-          />
-        ))}
+      {/* Single question */}
+      <div style={{
+        backgroundColor: '#1A1613', borderRadius: '20px', padding: '24px',
+        border: showError ? '1px solid rgba(217,119,6,0.55)' : '1px solid rgba(244,237,227,0.08)',
+        marginBottom: '32px', transition: 'border-color 0.15s ease',
+      }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '24px' }}>
+          <span style={{
+            fontSize: '11px', fontWeight: 600, color: '#B57A56',
+            backgroundColor: 'rgba(181,122,86,0.12)',
+            padding: '3px 9px', borderRadius: '9px', flexShrink: 0, marginTop: '2px',
+          }}>
+            {idx + 1}
+          </span>
+          <span style={{ fontSize: '16px', color: '#F4EDE3', lineHeight: 1.6 }}>{q.text}</span>
+        </div>
+
+        <div>
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+            {[1, 2, 3, 4, 5].map((n) => {
+              const selected = answers[q.key] === n
+              return (
+                <button
+                  key={n}
+                  onClick={() => handleSelect(q.key, n)}
+                  style={{
+                    width: '52px', height: '52px', borderRadius: '14px',
+                    border: selected ? '1px solid rgba(181,122,86,0.7)' : '1px solid rgba(244,237,227,0.12)',
+                    backgroundColor: selected ? 'rgba(181,122,86,0.25)' : 'rgba(244,237,227,0.04)',
+                    color: selected ? '#D09062' : '#9B8A7A',
+                    fontSize: '17px', fontWeight: selected ? 700 : 400,
+                    cursor: 'pointer', transition: 'all 0.12s ease', flexShrink: 0,
+                  }}
+                >
+                  {n}
+                </button>
+              )
+            })}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', paddingLeft: '4px', paddingRight: '4px' }}>
+            <span style={{ fontSize: '11px', color: '#6B5D52' }}>не согласен</span>
+            <span style={{ fontSize: '11px', color: '#6B5D52' }}>согласен</span>
+          </div>
+        </div>
       </div>
 
       {/* Navigation */}
@@ -216,72 +223,6 @@ export default function HEXACOPage() {
         </div>
       </div>
 
-    </div>
-  )
-}
-
-function Scale5Question({
-  number, text, reversed, value, onChange,
-}: {
-  number: number
-  text: string
-  reversed: boolean
-  value: number
-  onChange: (v: number) => void
-}) {
-  return (
-    <div style={{
-      backgroundColor: '#1A1613', borderRadius: '20px', padding: '20px 24px',
-      border: '1px solid rgba(244,237,227,0.08)',
-    }}>
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '20px' }}>
-        <span style={{
-          fontSize: '11px', fontWeight: 600, color: '#B57A56',
-          backgroundColor: 'rgba(181,122,86,0.12)',
-          padding: '3px 9px', borderRadius: '9px', flexShrink: 0, marginTop: '2px',
-        }}>
-          {number}
-        </span>
-        <div style={{ flex: 1 }}>
-          <span style={{ fontSize: '15px', color: '#F4EDE3', lineHeight: 1.55 }}>{text}</span>
-          {reversed && (
-            <span style={{
-              display: 'inline-block', marginLeft: '8px',
-              fontSize: '11px', color: '#6B5D52', letterSpacing: '0.04em',
-            }}>
-              ↺ обратная
-            </span>
-          )}
-        </div>
-      </div>
-
-      <div>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {[1, 2, 3, 4, 5].map((n) => {
-            const selected = value === n
-            return (
-              <button
-                key={n}
-                onClick={() => onChange(n)}
-                style={{
-                  width: '48px', height: '48px', borderRadius: '12px',
-                  border: selected ? '1px solid rgba(181,122,86,0.7)' : '1px solid rgba(244,237,227,0.10)',
-                  backgroundColor: selected ? 'rgba(181,122,86,0.22)' : 'rgba(244,237,227,0.03)',
-                  color: selected ? '#D09062' : '#9B8A7A',
-                  fontSize: '16px', fontWeight: selected ? 700 : 400,
-                  cursor: 'pointer', transition: 'all 0.12s ease', flexShrink: 0,
-                }}
-              >
-                {n}
-              </button>
-            )
-          })}
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
-          <span style={{ fontSize: '11px', color: '#6B5D52' }}>не согласен</span>
-          <span style={{ fontSize: '11px', color: '#6B5D52' }}>согласен</span>
-        </div>
-      </div>
     </div>
   )
 }

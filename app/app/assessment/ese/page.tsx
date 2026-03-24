@@ -3,16 +3,23 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ESE_STORAGE_KEY, type ESEAnswers } from '@/lib/assessment'
+import {
+  ESE_STORAGE_KEY, ESE_NO_EXPERIENCE_STORAGE_KEY,
+  type ESEAnswers, type ESENoExperience,
+} from '@/lib/assessment'
 
-// ── Sections ──────────────────────────────────────────────────
+// ── Data ──────────────────────────────────────────────────────
 
-const EMPTY: ESEAnswers = {
-  q1: 0, q2: 0, q3: 0,
-  q4: 0, q5: 0, q6: 0,
-  q7: 0, q8: 0, q9: 0,
-  q10: 0, q11: 0, q12: 0,
+const EMPTY_ANSWERS: ESEAnswers = {
+  q1: 0, q2: 0, q3: 0, q4: 0, q5: 0, q6: 0,
+  q7: 0, q8: 0, q9: 0, q10: 0, q11: 0, q12: 0,
   q13: 0, q14: 0, q15: 0,
+}
+
+const EMPTY_NO_EXP: ESENoExperience = {
+  q1: false, q2: false, q3: false, q4: false, q5: false,
+  q6: false, q7: false, q8: false, q9: false, q10: false,
+  q11: false, q12: false, q13: false, q14: false, q15: false,
 }
 
 const PHASES = [
@@ -68,12 +75,14 @@ const PHASES = [
 export default function ESEPage() {
   const router = useRouter()
   const [phase, setPhase] = useState(0)
-  const [answers, setAnswers] = useState<ESEAnswers>(EMPTY)
+  const [answers, setAnswers] = useState<ESEAnswers>(EMPTY_ANSWERS)
+  const [noExp, setNoExp] = useState<ESENoExperience>(EMPTY_NO_EXP)
+  const [showErrors, setShowErrors] = useState(false)
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(ESE_STORAGE_KEY)
-      if (saved) setAnswers(JSON.parse(saved))
+      const s1 = localStorage.getItem(ESE_STORAGE_KEY); if (s1) setAnswers(JSON.parse(s1))
+      const s2 = localStorage.getItem(ESE_NO_EXPERIENCE_STORAGE_KEY); if (s2) setNoExp(JSON.parse(s2))
     } catch {}
   }, [])
 
@@ -83,32 +92,45 @@ export default function ESEPage() {
     try { localStorage.setItem(ESE_STORAGE_KEY, JSON.stringify(next)) } catch {}
   }
 
+  const toggleNoExp = (key: keyof ESENoExperience) => {
+    const next = { ...noExp, [key]: !noExp[key] }
+    // If marking no_experience, clear the scale answer
+    const nextAnswers = !noExp[key] ? { ...answers, [key]: 0 } : answers
+    setNoExp(next)
+    setAnswers(nextAnswers)
+    try {
+      localStorage.setItem(ESE_NO_EXPERIENCE_STORAGE_KEY, JSON.stringify(next))
+      localStorage.setItem(ESE_STORAGE_KEY, JSON.stringify(nextAnswers))
+    } catch {}
+  }
+
   const currentPhase = PHASES[phase]
   const isLast = phase === PHASES.length - 1
-  const isFirst = phase === 0
+
+  const isPhaseComplete = () =>
+    currentPhase.questions.every(q => answers[q.key] > 0 || noExp[q.key])
 
   const handleNext = () => {
-    if (isLast) {
-      router.push('/assessment/overview')
-    } else {
-      setPhase(p => p + 1)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+    if (!isPhaseComplete()) {
+      setShowErrors(true)
+      const el = document.querySelector('[data-ese-error]')
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      return
     }
+    setShowErrors(false)
+    if (isLast) router.push('/assessment/overview')
+    else { setPhase(p => p + 1); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   }
 
   const handleBack = () => {
-    if (isFirst) {
-      router.push('/assessment')
-    } else {
-      setPhase(p => p - 1)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
+    setShowErrors(false)
+    if (phase === 0) router.push('/assessment')
+    else { setPhase(p => p - 1); window.scrollTo({ top: 0, behavior: 'smooth' }) }
   }
 
   return (
     <div style={{ maxWidth: '680px' }}>
 
-      {/* Back */}
       <Link href="/assessment" style={{
         fontSize: '14px', color: '#9B8A7A', textDecoration: 'none',
         display: 'inline-block', marginBottom: '32px',
@@ -120,7 +142,7 @@ export default function ESEPage() {
       <div style={{ marginBottom: '40px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
           <span style={{ fontSize: '12px', color: '#9B8A7A', letterSpacing: '0.06em' }}>
-            БЛОК 2 ИЗ 6 · ESE
+            БЛОК 2 ИЗ 6 · ПРЕДПРИНИМАТЕЛЬСКАЯ САМОЭФФЕКТИВНОСТЬ
           </span>
           <span style={{ fontSize: '12px', color: '#9B8A7A' }}>
             Фаза {phase + 1} из {PHASES.length}
@@ -128,39 +150,33 @@ export default function ESEPage() {
         </div>
         <div style={{ height: '3px', borderRadius: '2px', backgroundColor: 'rgba(244,237,227,0.08)', overflow: 'hidden' }}>
           <div style={{
-            height: '100%',
-            width: `${((phase + 1) / PHASES.length) * 100}%`,
-            backgroundColor: '#B57A56',
-            borderRadius: '2px',
-            transition: 'width 0.3s ease',
+            height: '100%', width: `${((phase + 1) / PHASES.length) * 100}%`,
+            backgroundColor: '#B57A56', borderRadius: '2px', transition: 'width 0.3s ease',
           }} />
         </div>
       </div>
 
-      {/* Scale legend — shown only on first phase */}
-      {phase === 0 && (
-        <div style={{
-          backgroundColor: '#1A1613', borderRadius: '16px', padding: '16px 20px',
-          border: '1px solid rgba(244,237,227,0.07)', marginBottom: '32px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          gap: '16px', flexWrap: 'wrap',
-        }}>
-          <span style={{ fontSize: '13px', color: '#9B8A7A' }}>Шкала оценки:</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#6B5D52' }}>1 — совсем не уверен</span>
-            <span style={{ fontSize: '13px', color: '#6B5D52' }}>···</span>
-            <span style={{ fontSize: '13px', color: '#CDBEAE' }}>7 — полностью уверен</span>
-          </div>
+      {/* Scale legend — shown on every phase */}
+      <div style={{
+        backgroundColor: '#1A1613', borderRadius: '16px', padding: '14px 18px',
+        border: '1px solid rgba(244,237,227,0.07)', marginBottom: '28px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        gap: '16px', flexWrap: 'wrap',
+      }}>
+        <span style={{ fontSize: '13px', color: '#9B8A7A' }}>Шкала:</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{ fontSize: '13px', color: '#6B5D52' }}>1 — совсем не уверен</span>
+          <span style={{ fontSize: '13px', color: '#6B5D52' }}>···</span>
+          <span style={{ fontSize: '13px', color: '#CDBEAE' }}>7 — полностью уверен</span>
         </div>
-      )}
+      </div>
 
       {/* Phase header */}
-      <div style={{ marginBottom: '28px' }}>
+      <div style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{
             width: '28px', height: '28px', borderRadius: '50%',
-            backgroundColor: 'rgba(181,122,86,0.18)',
-            border: '1px solid rgba(181,122,86,0.4)',
+            backgroundColor: 'rgba(181,122,86,0.18)', border: '1px solid rgba(181,122,86,0.4)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
           }}>
             <span style={{ fontSize: '12px', fontWeight: 600, color: '#D09062' }}>{currentPhase.number}</span>
@@ -170,16 +186,22 @@ export default function ESEPage() {
       </div>
 
       {/* Questions */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '48px' }}>
-        {currentPhase.questions.map((q, i) => (
-          <ScaleQuestion
-            key={q.key}
-            number={(phase * 3) + i + 1}
-            text={q.text}
-            value={answers[q.key]}
-            onChange={(v) => updateAnswer(q.key, v)}
-          />
-        ))}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '48px' }}>
+        {currentPhase.questions.map((q, i) => {
+          const unanswered = answers[q.key] === 0 && !noExp[q.key]
+          return (
+            <ESEQuestion
+              key={q.key}
+              number={(phase * 3) + i + 1}
+              text={q.text}
+              value={answers[q.key]}
+              noExperience={noExp[q.key]}
+              hasError={showErrors && unanswered}
+              onScale={(v) => updateAnswer(q.key, v)}
+              onToggleNoExp={() => toggleNoExp(q.key)}
+            />
+          )
+        })}
       </div>
 
       {/* Navigation */}
@@ -207,22 +229,29 @@ export default function ESEPage() {
   )
 }
 
-// ── Scale question component ──────────────────────────────────
+// ── ESEQuestion ───────────────────────────────────────────────
 
-function ScaleQuestion({
-  number, text, value, onChange,
+function ESEQuestion({
+  number, text, value, noExperience, hasError, onScale, onToggleNoExp,
 }: {
   number: number
   text: string
   value: number
-  onChange: (v: number) => void
+  noExperience: boolean
+  hasError?: boolean
+  onScale: (v: number) => void
+  onToggleNoExp: () => void
 }) {
   return (
-    <div style={{
-      backgroundColor: '#1A1613', borderRadius: '20px', padding: '20px 24px',
-      border: '1px solid rgba(244,237,227,0.08)',
-    }}>
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '20px' }}>
+    <div
+      data-ese-error={hasError ? 'true' : undefined}
+      style={{
+        backgroundColor: '#1A1613', borderRadius: '20px', padding: '20px 24px',
+        border: hasError ? '1px solid rgba(217,119,6,0.55)' : '1px solid rgba(244,237,227,0.08)',
+        opacity: noExperience ? 0.7 : 1,
+        transition: 'border-color 0.15s ease',
+      }}>
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '18px' }}>
         <span style={{
           fontSize: '11px', fontWeight: 600, color: '#B57A56',
           backgroundColor: 'rgba(181,122,86,0.12)',
@@ -233,21 +262,24 @@ function ScaleQuestion({
         <span style={{ fontSize: '15px', color: '#F4EDE3', lineHeight: 1.55 }}>{text}</span>
       </div>
 
-      <div>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+      {/* Scale buttons */}
+      <div style={{ marginBottom: '14px' }}>
+        <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap' }}>
           {[1, 2, 3, 4, 5, 6, 7].map((n) => {
-            const selected = value === n
+            const selected = !noExperience && value === n
             return (
               <button
                 key={n}
-                onClick={() => onChange(n)}
+                onClick={() => !noExperience && onScale(n)}
+                disabled={noExperience}
                 style={{
                   width: '42px', height: '42px', borderRadius: '12px',
                   border: selected ? '1px solid rgba(181,122,86,0.7)' : '1px solid rgba(244,237,227,0.10)',
                   backgroundColor: selected ? 'rgba(181,122,86,0.22)' : 'rgba(244,237,227,0.03)',
                   color: selected ? '#D09062' : '#9B8A7A',
                   fontSize: '15px', fontWeight: selected ? 700 : 400,
-                  cursor: 'pointer', transition: 'all 0.12s ease', flexShrink: 0,
+                  cursor: noExperience ? 'default' : 'pointer',
+                  transition: 'all 0.12s ease', flexShrink: 0,
                 }}
               >
                 {n}
@@ -255,10 +287,40 @@ function ScaleQuestion({
             )
           })}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
           <span style={{ fontSize: '11px', color: '#6B5D52' }}>не уверен</span>
           <span style={{ fontSize: '11px', color: '#6B5D52' }}>полностью уверен</span>
         </div>
+      </div>
+
+      {/* No-experience toggle */}
+      <div style={{
+        borderTop: '1px solid rgba(244,237,227,0.07)',
+        paddingTop: '12px',
+        display: 'flex', alignItems: 'center', gap: '10px',
+      }}>
+        <button
+          onClick={onToggleNoExp}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '7px',
+            backgroundColor: 'transparent', border: 'none',
+            cursor: 'pointer', padding: '0',
+          }}
+        >
+          <div style={{
+            width: '16px', height: '16px', borderRadius: '4px', flexShrink: 0,
+            border: noExperience ? '1px solid rgba(181,122,86,0.6)' : '1px solid rgba(244,237,227,0.20)',
+            backgroundColor: noExperience ? 'rgba(181,122,86,0.25)' : 'transparent',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            {noExperience && (
+              <span style={{ fontSize: '10px', color: '#D09062', fontWeight: 700 }}>✓</span>
+            )}
+          </div>
+          <span style={{ fontSize: '13px', color: noExperience ? '#D09062' : '#6B5D52' }}>
+            У меня не было такого опыта
+          </span>
+        </button>
       </div>
     </div>
   )

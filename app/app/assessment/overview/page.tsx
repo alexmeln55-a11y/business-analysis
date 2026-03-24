@@ -3,12 +3,21 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
-  INTAKE_STORAGE_KEY, ESE_STORAGE_KEY, HEXACO_STORAGE_KEY,
-  VALUES_STORAGE_KEY, IDENTITY_STORAGE_KEY, ENTRECOMP_STORAGE_KEY,
-  calcESEScores, calcHEXACOScores, calcValuesScores, calcIdentityScores, calcEntreCompScores,
-  type FounderIntakeAnswers, type ESEAnswers, type ESEScores,
+  INTAKE_STORAGE_KEY, INTAKE_V2_STORAGE_KEY,
+  BLOCK1_AI_STORAGE_KEY,
+  ESE_STORAGE_KEY, ESE_NO_EXPERIENCE_STORAGE_KEY,
+  HEXACO_STORAGE_KEY, VALUES_STORAGE_KEY,
+  IDENTITY_STORAGE_KEY, IDENTITY_SCENARIOS_STORAGE_KEY,
+  ENTRECOMP_V2_STORAGE_KEY,
+  calcESEScores, calcHEXACOScores, calcValuesScores,
+  calcIdentityScores, calcIdentityScoresWithScenarios,
+  calcEntreCompV2Scores,
+  type FounderIntakeAnswers, type FounderIntakeStructured,
+  type Block1AIAnswers,
+  type ESEAnswers, type ESEScores, type ESENoExperience,
   type HEXACOAnswers, type HEXACOScores, type ValuesAnswers, type ValuesScores,
-  type IdentityAnswers, type IdentityScores, type EntreCompAnswers, type EntreCompScores,
+  type IdentityAnswers, type IdentityScores, type IdentityScenarios,
+  type EntreCompV2Answers, type EntreCompScores,
 } from '@/lib/assessment'
 
 // ── Per-block interpretation helpers ─────────────────────────
@@ -167,13 +176,25 @@ interface FounderSummaryOutput {
 
 function buildFounderSummary(
   b1: FounderIntakeAnswers | null,
+  b1v2: FounderIntakeStructured | null,
   ese: ESEScores | null,
   hexaco: HEXACOScores | null,
   values: ValuesScores | null,
   identity: IdentityScores | null,
   entrecomp: EntreCompScores | null,
+  b1ai: Block1AIAnswers | null,
 ): FounderSummaryOutput {
-  const b1Done = b1 ? Object.values(b1).some(v => typeof v === 'string' && (v as string).trim().length > 0) : false
+  // b1 completed if v2 has any selections, else fall back to v1, else AI
+  const b1v2Done = b1v2
+    ? ((b1v2.skill_tags?.length ?? 0) > 0 || (b1v2.industries?.length ?? 0) > 0 ||
+       (b1v2.unhappy_reasons?.length ?? 0) > 0 || (b1v2.time_per_week ?? '') !== '')
+    : false
+  const b1v1Done = b1 ? Object.values(b1).some(v => typeof v === 'string' && (v as string).trim().length > 0) : false
+  const b1aiResolved = b1ai
+    ? Object.values(b1ai).filter(a => a.status === 'resolved' || a.status === 'low_confidence').length
+    : 0
+  const b1aiDone = b1aiResolved >= 4
+  const b1Done = b1v2Done || b1v1Done || b1aiDone
   const identityDone = identity ? (identity.darwinian > 0 || identity.communitarian > 0 || identity.missionary > 0) : false
 
   const completedCount = [
@@ -187,7 +208,28 @@ function buildFounderSummary(
 
   // ── Strengths ──────────────────────────────────────────────
   const strengths: string[] = []
-  if (b1) {
+  if (b1v2) {
+    if ((b1v2.skill_tags?.length ?? 0) >= 3)
+      strengths.push('Широкий набор практических навыков для ручного старта')
+    if (b1v2.has_clients || b1v2.has_audience || (b1v2.first_30_buyers ?? '').trim().length > 5)
+      strengths.push('Есть прямой доступ к рынку и первым клиентам')
+    if ((b1v2.industries?.length ?? 0) >= 2)
+      strengths.push(`Контакты в ${b1v2.industries.length} отраслях — широкие возможности входа`)
+    if (b1v2.has_partners && b1v2.has_suppliers)
+      strengths.push('Есть поставщики и партнёры — инфраструктура для быстрого запуска')
+  } else if (b1ai && b1aiDone) {
+    const tags = Object.values(b1ai).map(a => a.finalTag).filter(Boolean)
+    if (tags.includes('commercial_strength'))
+      strengths.push('Сильная коммерческая база — продажи, переговоры, привлечение клиентов')
+    if (tags.includes('product_build_signal'))
+      strengths.push('Навык создания продукта или сервиса с нуля')
+    if (tags.includes('execution_strength'))
+      strengths.push('Сильное операционное исполнение — процессы и управление')
+    if (tags.includes('market_access') || tags.includes('distribution_access'))
+      strengths.push('Есть прямой доступ к рынку и первым клиентам')
+    if (tags.includes('partner_access') || tags.includes('audience_access'))
+      strengths.push('Есть партнёрский или аудиторный ресурс для быстрого старта')
+  } else if (b1) {
     if (b1.q1.trim().length > 10 || b1.q2.trim().length > 10)
       strengths.push('Сильная практическая база для ручного старта')
     if (b1.q5.trim().length > 5 || b1.q6.trim().length > 5)
@@ -275,8 +317,19 @@ function buildFounderSummary(
     opportunityFit.push('Менее подходят капиталоёмкие и высоконеопределённые входы без быстрой проверки спроса')
   if (hexaco && hexaco.conscientiousness >= 4)
     opportunityFit.push('Подходят модели, где дисциплина и управляемость — конкурентное преимущество')
-  if (b1 && !b1.q15.trim())
+  if (b1v2 && !b1v2.has_helpers)
     opportunityFit.push('Лучше подходят модели, где можно начать без большой команды')
+  else if (!b1v2 && b1 && !b1.q15.trim())
+    opportunityFit.push('Лучше подходят модели, где можно начать без большой команды')
+  else if (!b1v2 && !b1 && b1ai && b1aiDone) {
+    const tags = Object.values(b1ai).map(a => a.finalTag).filter(Boolean)
+    if (tags.includes('solo_start_fit'))
+      opportunityFit.push('Лучше подходят модели, где можно начать без большой команды')
+    if (tags.includes('capital_capacity'))
+      opportunityFit.push('Подходят модели с умеренным капиталоёмким входом')
+    if (tags.includes('risk_tolerance'))
+      opportunityFit.push('Подходят модели с агрессивным тестом и быстрым ростом')
+  }
 
   return {
     completedCount,
@@ -291,21 +344,29 @@ function buildFounderSummary(
 
 export default function AssessmentOverviewPage() {
   const [b1Answers, setB1Answers] = useState<FounderIntakeAnswers | null>(null)
+  const [b1v2Answers, setB1v2Answers] = useState<FounderIntakeStructured | null>(null)
+  const [b1aiAnswers, setB1aiAnswers] = useState<Block1AIAnswers | null>(null)
   const [eseAnswers, setEseAnswers] = useState<ESEAnswers | null>(null)
+  const [eseNoExp, setEseNoExp] = useState<ESENoExperience | null>(null)
   const [hexacoAnswers, setHexacoAnswers] = useState<HEXACOAnswers | null>(null)
   const [valuesAnswers, setValuesAnswers] = useState<ValuesAnswers | null>(null)
   const [identityAnswers, setIdentityAnswers] = useState<IdentityAnswers | null>(null)
-  const [entrecompAnswers, setEntrecompAnswers] = useState<EntreCompAnswers | null>(null)
+  const [identityScenarios, setIdentityScenarios] = useState<IdentityScenarios | null>(null)
+  const [entrecompV2Answers, setEntrecompV2Answers] = useState<EntreCompV2Answers | null>(null)
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     try {
-      const s1 = localStorage.getItem(INTAKE_STORAGE_KEY); if (s1) setB1Answers(JSON.parse(s1))
-      const s2 = localStorage.getItem(ESE_STORAGE_KEY); if (s2) setEseAnswers(JSON.parse(s2))
-      const s3 = localStorage.getItem(HEXACO_STORAGE_KEY); if (s3) setHexacoAnswers(JSON.parse(s3))
-      const s4 = localStorage.getItem(VALUES_STORAGE_KEY); if (s4) setValuesAnswers(JSON.parse(s4))
-      const s5 = localStorage.getItem(IDENTITY_STORAGE_KEY); if (s5) setIdentityAnswers(JSON.parse(s5))
-      const s6 = localStorage.getItem(ENTRECOMP_STORAGE_KEY); if (s6) setEntrecompAnswers(JSON.parse(s6))
+      const r1 = localStorage.getItem(INTAKE_STORAGE_KEY); if (r1) setB1Answers(JSON.parse(r1))
+      const r1v2 = localStorage.getItem(INTAKE_V2_STORAGE_KEY); if (r1v2) setB1v2Answers(JSON.parse(r1v2))
+      const r1ai = localStorage.getItem(BLOCK1_AI_STORAGE_KEY); if (r1ai) setB1aiAnswers(JSON.parse(r1ai))
+      const r2 = localStorage.getItem(ESE_STORAGE_KEY); if (r2) setEseAnswers(JSON.parse(r2))
+      const r2ne = localStorage.getItem(ESE_NO_EXPERIENCE_STORAGE_KEY); if (r2ne) setEseNoExp(JSON.parse(r2ne))
+      const r3 = localStorage.getItem(HEXACO_STORAGE_KEY); if (r3) setHexacoAnswers(JSON.parse(r3))
+      const r4 = localStorage.getItem(VALUES_STORAGE_KEY); if (r4) setValuesAnswers(JSON.parse(r4))
+      const r5 = localStorage.getItem(IDENTITY_STORAGE_KEY); if (r5) setIdentityAnswers(JSON.parse(r5))
+      const r5s = localStorage.getItem(IDENTITY_SCENARIOS_STORAGE_KEY); if (r5s) setIdentityScenarios(JSON.parse(r5s))
+      const r6v2 = localStorage.getItem(ENTRECOMP_V2_STORAGE_KEY); if (r6v2) setEntrecompV2Answers(JSON.parse(r6v2))
     } catch {}
     setLoaded(true)
   }, [])
@@ -313,8 +374,12 @@ export default function AssessmentOverviewPage() {
   const eseScores = eseAnswers ? calcESEScores(eseAnswers) : null
   const hexacoScores = hexacoAnswers ? calcHEXACOScores(hexacoAnswers) : null
   const valuesScores = valuesAnswers ? calcValuesScores(valuesAnswers) : null
-  const identityScores = identityAnswers ? calcIdentityScores(identityAnswers) : null
-  const entrecompScores = entrecompAnswers ? calcEntreCompScores(entrecompAnswers) : null
+  const identityScores = identityAnswers
+    ? (identityScenarios
+        ? calcIdentityScoresWithScenarios(identityAnswers, identityScenarios)
+        : calcIdentityScores(identityAnswers))
+    : null
+  const entrecompScores = entrecompV2Answers ? calcEntreCompV2Scores(entrecompV2Answers) : null
 
   const eseHasData = eseScores && eseScores.overall > 0
   const hexacoHasData = hexacoScores && hexacoScores.overall > 0
@@ -322,7 +387,7 @@ export default function AssessmentOverviewPage() {
   const identityHasData = identityScores && (identityScores.darwinian > 0 || identityScores.communitarian > 0 || identityScores.missionary > 0)
   const entrecompHasData = entrecompScores && entrecompScores.overall > 0
 
-  const summary = buildFounderSummary(b1Answers, eseScores, hexacoScores, valuesScores, identityScores, entrecompScores)
+  const summary = buildFounderSummary(b1Answers, b1v2Answers, eseScores, hexacoScores, valuesScores, identityScores, entrecompScores, b1aiAnswers)
   const allDone = summary.completedCount === 6
   const hasSomeData = summary.completedCount > 0
 
