@@ -541,6 +541,241 @@ export interface EntreCompV2Answers {
 
 export const ENTRECOMP_V2_STORAGE_KEY = 'entrecomp_v2'
 
+// ── Unified Founder Profile (rule-based) ──────────────────────
+
+export interface ProfileFact {
+  text: string
+  source: string  // e.g. 'Б2·ESE', 'Б3·HEXACO', 'Б6·EntreComp'
+}
+
+export interface FounderProfile {
+  completedBlocks: number
+  weakIdeation: boolean          // Б6: ideation_opportunity ≤ 2.0 (confirmed signal)
+  coreProfile: string[]          // 1–2 identity statements
+  strengths: ProfileFact[]       // confirmed by data, ≥1 block
+  launchStyle: ProfileFact[]     // how to best enter a new direction
+  limitations: ProfileFact[]     // honest, not softened
+  opportunityTypes: ProfileFact[] // what kinds of opportunities fit
+  warningScenarios: ProfileFact[] // what to avoid
+}
+
+const _IDL: Record<string, string> = {
+  darwinian: 'Рыночный (Darwinian)',
+  communitarian: 'Нишевой (Communitarian)',
+  missionary: 'Миссионерский (Missionary)',
+}
+
+export function buildFounderProfile(
+  ese: ESEScores | null,
+  hexaco: HEXACOScores | null,
+  values: ValuesScores | null,
+  identity: IdentityScores | null,
+  entrecomp: EntreCompScores | null,
+  b1tags: string[],
+): FounderProfile {
+  const identityDone = !!(identity && (identity.darwinian > 0 || identity.communitarian > 0 || identity.missionary > 0))
+  const weakIdeation = !!(entrecomp && entrecomp.ideation_opportunity > 0 && entrecomp.ideation_opportunity <= 2.0)
+
+  const completedBlocks = [
+    b1tags.length > 0,
+    ese && ese.overall > 0,
+    hexaco && hexaco.overall > 0,
+    values && values.overall > 0,
+    identityDone,
+    entrecomp && entrecomp.overall > 0,
+  ].filter(Boolean).length
+
+  // ── Core profile ───────────────────────────────────────────
+  const coreProfile: string[] = []
+  if (identityDone && identity) {
+    coreProfile.push(identity.isMixed && identity.secondary
+      ? `Смешанный тип: ${_IDL[identity.dominant]} + ${_IDL[identity.secondary]}`
+      : `Тип основателя: ${_IDL[identity.dominant]}`)
+  }
+  if (ese && ese.overall > 0) {
+    if (ese.overall >= 4.0) coreProfile.push('Высокая уверенность в своих компетенциях для запуска')
+    else if (ese.overall >= 3.0) coreProfile.push('Умеренная самооценка компетенций — есть сильные зоны и зоны роста')
+    else coreProfile.push('Осторожная самооценка — видит себя неготовым по ряду фаз запуска')
+  }
+
+  // ── Strengths ──────────────────────────────────────────────
+  const strengths: ProfileFact[] = []
+
+  // Б1 tags
+  if (b1tags.includes('commercial_strength'))
+    strengths.push({ text: 'Коммерческая сила: продажи, переговоры, привлечение клиентов', source: 'Б1' })
+  if (b1tags.includes('product_build_signal'))
+    strengths.push({ text: 'Навык создания продукта или сервиса с нуля', source: 'Б1' })
+  if (b1tags.includes('execution_strength'))
+    strengths.push({ text: 'Операционное исполнение — процессы и управление', source: 'Б1' })
+  if (b1tags.includes('market_access') || b1tags.includes('distribution_access'))
+    strengths.push({ text: 'Прямой доступ к рынку и первым клиентам', source: 'Б1' })
+  if (b1tags.includes('partner_access') || b1tags.includes('audience_access'))
+    strengths.push({ text: 'Партнёрский или аудиторный ресурс для старта', source: 'Б1' })
+
+  // Б2 ESE (scale 1–5, high ≥ 4.0)
+  if (ese && ese.overall > 0) {
+    if (ese.opportunity_search >= 4.0) strengths.push({ text: 'Уверенно ищет и оценивает возможности', source: 'Б2·ESE' })
+    if (ese.planning >= 4.0) strengths.push({ text: 'Структурное планирование как инструмент запуска', source: 'Б2·ESE' })
+    if (ese.resource_mobilization >= 4.0) strengths.push({ text: 'Уверенная мобилизация людей и ресурсов', source: 'Б2·ESE' })
+    if (ese.people_execution >= 4.0) strengths.push({ text: 'Сильное управление командой', source: 'Б2·ESE' })
+    if (ese.finance_market_execution >= 4.0) strengths.push({ text: 'Уверенность в финансах и выводе на рынок', source: 'Б2·ESE' })
+  }
+
+  // Б3 HEXACO (scale 1–5, high ≥ 4.0)
+  if (hexaco && hexaco.overall > 0) {
+    if (hexaco.conscientiousness >= 4.0) strengths.push({ text: 'Операционная дисциплина', source: 'Б3·HEXACO' })
+    if (hexaco.extraversion >= 4.0) strengths.push({ text: 'Активен в коммуникации — продажи и партнёрства даются легче', source: 'Б3·HEXACO' })
+    if (hexaco.openness_to_experience >= 4.0) strengths.push({ text: 'Готов к нестандартным моделям и экспериментам', source: 'Б3·HEXACO' })
+    if (hexaco.honesty_humility >= 4.0) strengths.push({ text: 'Высокая честность снижает репутационные риски', source: 'Б3·HEXACO' })
+    if (hexaco.agreeableness >= 4.0) strengths.push({ text: 'Высокая доброжелательность — укрепляет долгосрочные отношения', source: 'Б3·HEXACO' })
+  }
+
+  // Б4 Values (scale 1–5, high ≥ 4.0)
+  if (values && values.overall > 0) {
+    if (values.achievement_power >= 4.0) strengths.push({ text: 'Ориентация на результат и рост', source: 'Б4·Ценности' })
+    if (values.openness_self_direction >= 4.0) strengths.push({ text: 'Самостоятельность в выборе модели и пути', source: 'Б4·Ценности' })
+    if (values.ethics_rule_orientation >= 4.0) strengths.push({ text: 'Белая зона — снижает правовые и репутационные риски', source: 'Б4·Ценности' })
+  }
+
+  // Б6 EntreComp (scale 1–5, high ≥ 4.0)
+  if (entrecomp && entrecomp.overall > 0) {
+    if (entrecomp.ideation_opportunity >= 4.0) strengths.push({ text: 'Видит рыночные пробелы и формулирует идеи', source: 'Б6·EntreComp' })
+    if (entrecomp.action_under_uncertainty >= 4.0) strengths.push({ text: 'Запускается в неопределённости и быстро адаптируется', source: 'Б6·EntreComp' })
+    if (entrecomp.ethical_orientation >= 4.0) strengths.push({ text: 'Держит ценностные границы под давлением', source: 'Б6·EntreComp' })
+  }
+
+  // ── Limitations ────────────────────────────────────────────
+  const limitations: ProfileFact[] = []
+
+  // Б2 ESE weak subscales (low < 3.0)
+  if (ese && ese.overall > 0) {
+    if (ese.opportunity_search > 0 && ese.opportunity_search < 3.0)
+      limitations.push({ text: 'Сложнее замечать возможности до их очевидности для рынка', source: 'Б2·ESE' })
+    if (ese.resource_mobilization > 0 && ese.resource_mobilization < 3.0)
+      limitations.push({ text: 'Низкая уверенность в мобилизации ресурсов и команды', source: 'Б2·ESE' })
+    if (ese.finance_market_execution > 0 && ese.finance_market_execution < 3.0)
+      limitations.push({ text: 'Низкая уверенность в финансовых решениях и маркетинге', source: 'Б2·ESE' })
+    if (ese.people_execution > 0 && ese.people_execution < 3.0)
+      limitations.push({ text: 'Управление командой — зона риска', source: 'Б2·ESE' })
+  }
+
+  // Б3 HEXACO
+  if (hexaco && hexaco.overall > 0) {
+    if (hexaco.extraversion > 0 && hexaco.extraversion < 3.0)
+      limitations.push({ text: 'Низкая экстраверсия — первые продажи и нетворкинг даются сложнее', source: 'Б3·HEXACO' })
+    if (hexaco.conscientiousness > 0 && hexaco.conscientiousness < 3.0)
+      limitations.push({ text: 'Невысокая операционная дисциплина — рекомендуется партнёр-оператор', source: 'Б3·HEXACO' })
+    if (hexaco.emotionality >= 4.0)
+      limitations.push({ text: 'Высокая эмоциональность — острее реагирует на неопределённость и провалы', source: 'Б3·HEXACO' })
+  }
+
+  // Б4 Values
+  if (values && values.security >= 4.0)
+    limitations.push({ text: 'Осторожный подход к риску — может удлинять решение о запуске', source: 'Б4·Ценности' })
+
+  // Б5 Identity
+  if (identityDone && identity) {
+    if (identity.dominant === 'missionary' && !identity.isMixed)
+      limitations.push({ text: 'Миссионерский профиль: монетизация вторична — риск затянуть выход на выручку', source: 'Б5·Идентичность' })
+    if (identity.dominant === 'communitarian' && !identity.isMixed)
+      limitations.push({ text: 'Ниша-ориентация может ограничивать масштаб за пределами своего сообщества', source: 'Б5·Идентичность' })
+  }
+
+  // Б6 EntreComp
+  if (entrecomp && entrecomp.overall > 0) {
+    if (weakIdeation)
+      limitations.push({ text: `Слабая идеация (${entrecomp.ideation_opportunity.toFixed(1)}/5) — самостоятельная генерация идей с нуля затруднена`, source: 'Б6·EntreComp' })
+    else if (entrecomp.ideation_opportunity > 0 && entrecomp.ideation_opportunity < 3.0)
+      limitations.push({ text: 'Поиск нестандартных возможностей — зона роста', source: 'Б6·EntreComp' })
+    if (entrecomp.action_under_uncertainty > 0 && entrecomp.action_under_uncertainty < 3.0)
+      limitations.push({ text: 'Сложнее запускаться без полного плана — нужен проработанный вход', source: 'Б6·EntreComp' })
+  }
+
+  // ── Launch style ───────────────────────────────────────────
+  const launchStyle: ProfileFact[] = []
+  if (identityDone && identity) {
+    if (identity.dominant === 'darwinian') {
+      launchStyle.push({
+        text: entrecomp && entrecomp.action_under_uncertainty >= 4.0
+          ? 'Быстрый тест с конкретной метрикой — проверить юнит-экономику до масштабирования'
+          : 'Чёткая рыночная гипотеза: конкретный сегмент + метрика успеха до вложений',
+        source: 'Б5·Идентичность',
+      })
+    } else if (identity.dominant === 'communitarian') {
+      launchStyle.push({ text: 'Через нишевую экспертизу и доверие — первые клиенты из своей сети', source: 'Б5·Идентичность' })
+    } else if (identity.dominant === 'missionary') {
+      launchStyle.push({ text: 'Через идею и сообщество вокруг неё — монетизацию строить поверх доверия', source: 'Б5·Идентичность' })
+    }
+    if (identity.isMixed && identity.secondary) {
+      if ((identity.dominant === 'communitarian' && identity.secondary === 'missionary') ||
+          (identity.dominant === 'missionary' && identity.secondary === 'communitarian'))
+        launchStyle.push({ text: 'Сообщество + идея одновременно — медленнее, но высокий барьер для копирования', source: 'Б5·Идентичность' })
+    }
+  }
+  if (values && values.security >= 4.0)
+    launchStyle.push({ text: 'Аккуратная валидация с ограниченным риском до серьёзных вложений', source: 'Б4·Ценности' })
+  if (hexaco && hexaco.conscientiousness >= 4.0)
+    launchStyle.push({ text: 'Дисциплинированный подход — операционная чёткость как конкурентное преимущество', source: 'Б3·HEXACO' })
+  if (launchStyle.length === 0)
+    launchStyle.push({ text: 'Короткий ручной тест: интервью, первые продажи — до серьёзных вложений', source: 'Базовый принцип' })
+
+  // ── Opportunity types ──────────────────────────────────────
+  const opportunityTypes: ProfileFact[] = []
+  if (identityDone && identity) {
+    if (identity.dominant === 'communitarian')
+      opportunityTypes.push({ text: 'Рынки с высоким доверием, экспертизой, долгосрочными отношениями', source: 'Б5' })
+    else if (identity.dominant === 'missionary')
+      opportunityTypes.push({ text: 'Возможности с чёткой миссией и монетизацией через изменение', source: 'Б5' })
+    else if (identity.dominant === 'darwinian')
+      opportunityTypes.push({ text: 'Конкурентные рынки с понятными метриками роста', source: 'Б5' })
+  }
+  if (hexaco && hexaco.extraversion >= 4.0)
+    opportunityTypes.push({ text: 'Партнёрский и network-led вход', source: 'Б3' })
+  if (hexaco && hexaco.conscientiousness >= 4.0)
+    opportunityTypes.push({ text: 'Модели с конкурентным преимуществом по дисциплине и управляемости', source: 'Б3' })
+  if (entrecomp && entrecomp.action_under_uncertainty >= 4.0)
+    opportunityTypes.push({ text: 'Ниши с быстрым тестом и ранней выручкой', source: 'Б6' })
+  if (values && values.ethics_rule_orientation >= 4.0)
+    opportunityTypes.push({ text: 'Рынки, где прозрачность — преимущество перед серыми игроками', source: 'Б4' })
+  if (b1tags.includes('market_access') || b1tags.includes('distribution_access'))
+    opportunityTypes.push({ text: 'Модели, опирающиеся на имеющийся доступ к рынку', source: 'Б1' })
+  if (weakIdeation)
+    opportunityTypes.push({ text: 'Готовые модели, франшизы, copy-with-advantage, вход в доказанную нишу', source: 'Б6' })
+
+  // ── Warning scenarios ──────────────────────────────────────
+  const warningScenarios: ProfileFact[] = []
+  if (weakIdeation) {
+    warningScenarios.push({ text: 'Запуск без подтверждённой концепции с расчётом на самостоятельную идеацию', source: 'Б6·EntreComp' })
+    warningScenarios.push({ text: '"Найти уникальный оригинальный ход на рынке" как основная стратегия — идеация слабая', source: 'Б6·EntreComp' })
+  }
+  if (values && values.security >= 4.0)
+    warningScenarios.push({ text: 'Капиталоёмкие входы без быстрой проверки спроса', source: 'Б4' })
+  if (hexaco && hexaco.extraversion > 0 && hexaco.extraversion < 3.0)
+    warningScenarios.push({ text: 'Агрессивный холодный нетворкинг как основной канал роста', source: 'Б3' })
+  if (hexaco && hexaco.conscientiousness > 0 && hexaco.conscientiousness < 3.0)
+    warningScenarios.push({ text: 'Сложные операционные модели без партнёра-оператора', source: 'Б3' })
+  if (identityDone && identity && identity.dominant === 'missionary')
+    warningScenarios.push({ text: 'Чисто монетарные commodity-рынки без смысловой составляющей', source: 'Б5' })
+  if (ese && ese.resource_mobilization > 0 && ese.resource_mobilization < 3.0)
+    warningScenarios.push({ text: 'Бизнесы, требующие быстрого найма большой команды с нуля', source: 'Б2' })
+  if (entrecomp && entrecomp.action_under_uncertainty > 0 && entrecomp.action_under_uncertainty < 3.0)
+    warningScenarios.push({ text: 'Экстремальная неопределённость с требованием быстрых крупных ставок', source: 'Б6' })
+
+  return {
+    completedBlocks,
+    weakIdeation,
+    coreProfile: coreProfile.slice(0, 2),
+    strengths: strengths.slice(0, 7),
+    launchStyle: launchStyle.slice(0, 3),
+    limitations: limitations.slice(0, 6),
+    opportunityTypes: opportunityTypes.slice(0, 5),
+    warningScenarios: warningScenarios.slice(0, 5),
+  }
+}
+
+// ── calcEntreCompV2Scores ──────────────────────────────────────
+
 export function calcEntreCompV2Scores(a: EntreCompV2Answers): EntreCompScores {
   const avg = (...vals: number[]) => {
     const filled = vals.filter(v => v > 0)

@@ -29,6 +29,7 @@
 | Assessment-06 | Блок 6 EntreComp: /assessment/entrecomp, 3 компетенции × 3 вопроса, шкала 1–5, EntreComp summary в overview | ✅ |
 | Assessment-07 | Финальный overview: buildFounderSummary, 4 синтетических секции (сильные стороны, риски, стиль запуска, fit), completion status, условный CTA | ✅ |
 | Assessment-01 | Блок 1 переделан в AI-распаковку: свободный текст, AI-уточнения (макс. 2 раунда), finalTag из whitelist, server-only prompts, защита от prompt injection | ✅ |
+| Assessment-08 | Rule-based ядро + AI-слой + единый профиль: FounderProfile (6 секций), buildFounderProfile, /api/assessment/profile (AI-синтез с валидацией), overview переписан (профиль → блоки), шкалы исправлены (max=5) | ✅ |
 
 ---
 

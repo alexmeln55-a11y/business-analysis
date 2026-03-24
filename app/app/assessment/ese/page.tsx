@@ -70,19 +70,6 @@ const PHASES = [
   },
 ]
 
-// ── Pure value → degree label (no index dependency) ───────────
-
-function valueToLabel(v: number): string {
-  switch (v) {
-    case 1: return 'Совсем не уверен'
-    case 2: return 'Не уверен'
-    case 3: return 'Средняя уверенность'
-    case 4: return 'Уверен'
-    case 5: return 'Полностью уверен'
-    default: return ''
-  }
-}
-
 // ── Component ─────────────────────────────────────────────────
 
 export default function ESEPage() {
@@ -321,14 +308,6 @@ function ESEQuestion({
             )
           })}
         </div>
-
-        {/* Degree label — derived purely from value, hidden when noExperience */}
-        {value > 0 && !noExperience && (
-          <div style={{ marginTop: '10px', fontSize: '12px', color: '#B57A56', fontWeight: 500 }}>
-            {value}/5 — {valueToLabel(value)}
-          </div>
-        )}
-
 
       </div>
 
