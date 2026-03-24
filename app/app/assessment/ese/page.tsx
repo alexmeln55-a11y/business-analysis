@@ -302,10 +302,6 @@ function ESEQuestion({
             )
           })}
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '5px' }}>
-          <span style={{ fontSize: '11px', color: '#6B5D52' }}>не уверен</span>
-          <span style={{ fontSize: '11px', color: '#6B5D52' }}>полностью уверен</span>
-        </div>
 
         {/* Degree label — derived purely from value, hidden when noExperience */}
         {value > 0 && !noExperience && (
