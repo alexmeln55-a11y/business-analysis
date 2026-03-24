@@ -316,92 +316,46 @@ export default function AssessmentOverviewPage() {
             ЕДИНЫЙ ПРОФИЛЬ ОСНОВАТЕЛЯ
           </div>
 
-          {/* Ядро профиля */}
-          <ProfileSection
-            tag="1"
-            title="Ядро профиля"
-            subtitle="Кто этот основатель"
-          >
+          {/* Текстовый профиль */}
+          <div style={{
+            backgroundColor: '#1F1A16',
+            border: '1px solid rgba(181,122,86,0.20)',
+            borderRadius: '20px',
+            padding: '28px 32px',
+            marginBottom: '28px',
+          }}>
             {aiSynthesis ? (
-              <AIText>{aiSynthesis.coreProfile}</AIText>
+              // AI-текст: 4 абзаца
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {[aiSynthesis.paragraph1, aiSynthesis.paragraph2, aiSynthesis.paragraph3, aiSynthesis.paragraph4]
+                  .filter(Boolean)
+                  .map((para, i) => (
+                    <p key={i} style={{
+                      fontSize: '16px', color: '#F4EDE3', lineHeight: 1.75, margin: 0,
+                    }}>
+                      {para}
+                    </p>
+                  ))
+                }
+              </div>
             ) : (
-              profile.coreProfile.length > 0
-                ? profile.coreProfile.map((s, i) => <FactItem key={i} text={s} />)
-                : <EmptyHint>Заполните блоки 2 (ESE) и 5 (Идентичность) для вывода ядра профиля</EmptyHint>
+              // Rule-based заглушка: читаемый текст из profile данных
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {buildRuleBasedParagraphs(profile).map((para, i) => (
+                  <p key={i} style={{
+                    fontSize: '15px', color: '#CDBEAE', lineHeight: 1.75, margin: 0,
+                  }}>
+                    {para}
+                  </p>
+                ))}
+                {buildRuleBasedParagraphs(profile).length === 0 && (
+                  <p style={{ fontSize: '14px', color: '#4A3A2A', fontStyle: 'italic', margin: 0 }}>
+                    Заполните блоки диагностики — профиль появится автоматически
+                  </p>
+                )}
+              </div>
             )}
-          </ProfileSection>
-
-          {/* Сильные стороны */}
-          {profile.strengths.length > 0 && (
-            <ProfileSection
-              tag="2"
-              title="Сильные стороны"
-              subtitle="Подтверждено данными"
-              accent="green"
-            >
-              {aiSynthesis
-                ? aiSynthesis.strengths.map((s, i) => <FactItem key={i} text={s} accent="green" />)
-                : profile.strengths.map((f, i) => <FactItem key={i} text={f.text} source={f.source} accent="green" />)
-              }
-            </ProfileSection>
-          )}
-
-          {/* Рабочий стиль запуска */}
-          <ProfileSection
-            tag="3"
-            title="Рабочий стиль запуска"
-            subtitle="Как заходить в новое направление"
-          >
-            {aiSynthesis ? (
-              <AIText>{aiSynthesis.launchStyle}</AIText>
-            ) : (
-              profile.launchStyle.map((f, i) => <FactItem key={i} text={f.text} source={f.source} />)
-            )}
-          </ProfileSection>
-
-          {/* Ограничения и риски */}
-          {profile.limitations.length > 0 && (
-            <ProfileSection
-              tag="4"
-              title="Ограничения и риски"
-              subtitle={profile.weakIdeation ? '⚠ Включает слабую идеацию (Б6)' : 'Честно, без сглаживания'}
-              accent="amber"
-            >
-              {aiSynthesis
-                ? aiSynthesis.limitations.map((s, i) => <FactItem key={i} text={s} accent="amber" />)
-                : profile.limitations.map((f, i) => <FactItem key={i} text={f.text} source={f.source} accent="amber" />)
-              }
-            </ProfileSection>
-          )}
-
-          {/* Подходящие типы возможностей */}
-          {profile.opportunityTypes.length > 0 && (
-            <ProfileSection
-              tag="5"
-              title="Подходящие типы возможностей"
-              subtitle="Что соответствует профилю"
-            >
-              {aiSynthesis
-                ? aiSynthesis.opportunityTypes.map((s, i) => <FactItem key={i} text={s} />)
-                : profile.opportunityTypes.map((f, i) => <FactItem key={i} text={f.text} source={f.source} />)
-              }
-            </ProfileSection>
-          )}
-
-          {/* Нежелательные сценарии */}
-          {profile.warningScenarios.length > 0 && (
-            <ProfileSection
-              tag="6"
-              title="Нежелательные сценарии"
-              subtitle="Что противопоказано без компенсации"
-              accent="red"
-            >
-              {aiSynthesis
-                ? aiSynthesis.warningScenarios.map((s, i) => <FactItem key={i} text={s} accent="red" />)
-                : profile.warningScenarios.map((f, i) => <FactItem key={i} text={f.text} source={f.source} accent="red" />)
-              }
-            </ProfileSection>
-          )}
+          </div>
 
           {/* AI button */}
           {canGenerateAI && (
@@ -415,14 +369,14 @@ export default function AssessmentOverviewPage() {
                   <span style={{
                     fontSize: '11px', fontWeight: 600, color: '#6BA87A',
                     backgroundColor: 'rgba(107,168,122,0.12)', padding: '3px 10px', borderRadius: '9px',
-                  }}>AI-анализ активирован</span>
-                  <span style={{ fontSize: '13px', color: '#6B5D52' }}>Текст сгенерирован и проверен</span>
+                  }}>AI-анализ</span>
+                  <span style={{ fontSize: '13px', color: '#6B5D52' }}>Текст сгенерирован на основе ваших данных</span>
                 </div>
               ) : (
                 <div>
                   <div style={{ fontSize: '14px', color: '#CDBEAE', marginBottom: '12px' }}>
-                    AI-слой переводит сухие факты в связный профиль.
-                    {' '}<span style={{ color: '#6B5D52' }}>Данные — только из ваших ответов.</span>
+                    AI переведёт данные диагностики в один связный текст простыми словами.
+                    {' '}<span style={{ color: '#6B5D52' }}>Только из ваших ответов, без фантазий.</span>
                   </div>
                   {aiError && (
                     <div style={{ fontSize: '13px', color: '#D09062', marginBottom: '10px' }}>{aiError}</div>
@@ -438,7 +392,7 @@ export default function AssessmentOverviewPage() {
                       cursor: aiLoading ? 'default' : 'pointer',
                     }}
                   >
-                    {aiLoading ? 'Генерирую профиль...' : 'Сгенерировать AI-анализ →'}
+                    {aiLoading ? 'Генерирую...' : 'Сгенерировать текст профиля →'}
                   </button>
                 </div>
               )}
@@ -582,6 +536,41 @@ export default function AssessmentOverviewPage() {
 
     </div>
   )
+}
+
+// ── Rule-based paragraph fallback ────────────────────────────
+
+function buildRuleBasedParagraphs(profile: FounderProfile): string[] {
+  const paras: string[] = []
+
+  // P1: кто + реальная сила
+  const p1Parts: string[] = []
+  if (profile.coreProfile.length > 0) p1Parts.push(...profile.coreProfile)
+  if (profile.strengths.length > 0) {
+    const top = profile.strengths.slice(0, 2).map(f => f.text.toLowerCase())
+    p1Parts.push(`Подтверждённые сильные стороны: ${top.join(', ')}.`)
+  }
+  if (p1Parts.length > 0) paras.push(p1Parts.join(' '))
+
+  // P2: главное ограничение
+  if (profile.limitations.length > 0) {
+    const main = profile.weakIdeation
+      ? profile.limitations.find(f => /идеа|генер/i.test(f.text))
+      : profile.limitations[0]
+    if (main) paras.push(main.text)
+  }
+
+  // P3: территория / возможности
+  if (profile.opportunityTypes.length > 0) {
+    paras.push(profile.opportunityTypes.slice(0, 2).map(f => f.text).join('. ') + '.')
+  }
+
+  // P4: куда не стоит идти
+  if (profile.warningScenarios.length > 0) {
+    paras.push(profile.warningScenarios.slice(0, 2).map(f => f.text).join('. ') + '.')
+  }
+
+  return paras.filter(Boolean)
 }
 
 // ── Block1Detail ──────────────────────────────────────────────

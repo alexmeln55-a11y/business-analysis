@@ -5,12 +5,10 @@ import type { FounderProfile } from '@/lib/assessment'
 // ── AI synthesis output type ───────────────────────────────────
 
 export interface AISynthesis {
-  coreProfile: string
-  strengths: string[]
-  launchStyle: string
-  limitations: string[]
-  opportunityTypes: string[]
-  warningScenarios: string[]
+  paragraph1: string  // кто + реальная сила
+  paragraph2: string  // главное ограничение
+  paragraph3: string  // территория / подходящие возможности
+  paragraph4: string  // куда не стоит идти
 }
 
 // ── OpenAI client ──────────────────────────────────────────────
@@ -60,127 +58,75 @@ function profileToText(p: FounderProfile): string {
 // ── System prompt ──────────────────────────────────────────────
 
 const SYSTEM_PROMPT = `Ты получаешь структурированные данные диагностики основателя.
-Пиши анализ на основе ТОЛЬКО этих данных.
+Напиши ОДИН текст из четырёх абзацев — без заголовков, без списков, без пунктов.
 
-ЖЁСТКИЕ ПРАВИЛА:
+СТРУКТУРА (строго 4 абзаца в таком порядке):
 
-1. ТОЛЬКО ДАННЫЕ
-- Используй исключительно то, что передано в input
-- Если показатель не передан — не упоминай эту тему
-- Не додумывай. Не предполагай. Не дополняй из общих знаний
-- Если данных по разделу недостаточно: напиши "По этому разделу данных недостаточно"
+Абзац 1 — кто этот человек и в чём его реальная сила
+Абзац 2 — главное ограничение, честно и без смягчения
+Абзац 3 — где его территория, какие возможности подходят
+Абзац 4 — куда не стоит идти и почему
 
-2. ЗАПРЕЩЕНО
-- Писать сильную сторону без подтверждения данными
-- Сглаживать или смягчать низкие показатели и ограничения
-- Использовать мотивационные фразы и комплименты
-- Использовать термины диагностических инструментов:
-  не писать HEXACO, ESE, EntreComp, Schwartz, Darwinian,
-  Communitarian, Missionary, PVQ, Б1, Б2, Б3, Б4, Б5, Б6
-- Писать "ты можешь" или "у тебя есть потенциал" —
-  если это прямо не следует из переданных данных
-- Добавлять сильные стороны сверх списка «ПОДТВЕРЖДЁННЫЕ СИЛЬНЫЕ СТОРОНЫ»
-- Убирать или смягчать пункты из «ЗАФИКСИРОВАННЫЕ ОГРАНИЧЕНИЯ»
+ПРАВИЛА:
+- Пиши "ты", "твой", "тебе"
+- Никаких терминов инструментов в тексте: не писать HEXACO, ESE, EntreComp,
+  Schwartz, PVQ, Darwinian, Communitarian, Missionary, Б1, Б2, Б3, Б4, Б5, Б6
+- Никаких списков, маркеров, пунктов внутри текста
+- Каждый абзац — 2–4 строки, только связный текст
+- Тон: спокойный и честный, без мотивации и без комплиментов
+- Каждое утверждение опирается только на переданные данные
+- Если данных на абзац не хватает — верни для него пустую строку ""
+- Слабая идеация (если флаг ДА) — обязательно называть в абзаце 2 и в абзаце 4
 
-3. ТОН
-- Пиши от второго лица: "ты", "твой", "тебе"
-- Честный и спокойный — без комплиментов и без осуждения
-- Каждую характеристику переводи в жизненный смысл
-- Длина каждой секции: 3–5 строк, только текст
-
-4. СТРУКТУРА — строго в этом порядке:
-- coreProfile: кто этот основатель, как он действует
-- strengths: что подтверждено данными
-- launchStyle: как лучше всего заходить в новое
-- limitations: все ограничения честно
-- opportunityTypes: что подходит по профилю
-- warningScenarios: что противопоказано
-
-5. САМОПРОВЕРКА ПЕРЕД ВЫВОДОМ
-Для каждого написанного тезиса проверь:
-- Есть ли в input данные, которые это подтверждают?
-- Если нет — удали тезис
-- Низкий показатель → только в ограничениях, не в сильных сторонах
-- Слабая идеация (если ДА) → обязана быть и в limitations, и в warningScenarios
+САМОПРОВЕРКА ПЕРЕД ВЫВОДОМ:
+- Нет ли терминов диагностики в тексте?
+- Нет ли списков или маркеров?
+- Названо ли главное ограничение прямо?
+- Не смягчено ли оно косвенными формулировками?
 
 ФОРМАТ ВЫВОДА (строгий JSON, без markdown):
 {
-  "coreProfile": "текст 3–5 строк",
-  "strengths": ["тезис", "тезис", ...до 5 пунктов],
-  "launchStyle": "текст 3–5 строк",
-  "limitations": ["ограничение", ...все из списка],
-  "opportunityTypes": ["тип", ...до 4 пунктов],
-  "warningScenarios": ["сценарий", ...все из списка]
+  "paragraph1": "...",
+  "paragraph2": "...",
+  "paragraph3": "...",
+  "paragraph4": "..."
 }`
 
 // ── Validate and fix AI output ─────────────────────────────────
+
+const BLOCK_TERMS = /\b(HEXACO|ESE|EntreComp|Schwartz|PVQ|Darwinian|Communitarian|Missionary|Б[1-6])\b/gi
+const cleanText = (s: string) => s.replace(BLOCK_TERMS, '').replace(/\s{2,}/g, ' ').trim()
 
 function validateAndFix(raw: unknown, profile: FounderProfile): AISynthesis | null {
   if (!raw || typeof raw !== 'object') return null
   const r = raw as Record<string, unknown>
 
+  const str = (key: string) =>
+    typeof r[key] === 'string' ? cleanText((r[key] as string).trim()) : ''
+
   const synthesis: AISynthesis = {
-    coreProfile: typeof r.coreProfile === 'string' ? r.coreProfile.trim() : '',
-    strengths: Array.isArray(r.strengths)
-      ? r.strengths.filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
-      : [],
-    launchStyle: typeof r.launchStyle === 'string' ? r.launchStyle.trim() : '',
-    limitations: Array.isArray(r.limitations)
-      ? r.limitations.filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
-      : [],
-    opportunityTypes: Array.isArray(r.opportunityTypes)
-      ? r.opportunityTypes.filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
-      : [],
-    warningScenarios: Array.isArray(r.warningScenarios)
-      ? r.warningScenarios.filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
-      : [],
+    paragraph1: str('paragraph1'),
+    paragraph2: str('paragraph2'),
+    paragraph3: str('paragraph3'),
+    paragraph4: str('paragraph4'),
   }
 
-  // Minimum viability
-  if (!synthesis.coreProfile) return null
+  // Minimum viability: at least paragraph1 must exist
+  if (!synthesis.paragraph1) return null
 
-  // RULE: strengths cannot exceed rule-based count (AI cannot add invented ones)
-  if (synthesis.strengths.length > profile.strengths.length + 1) {
-    synthesis.strengths = synthesis.strengths.slice(0, profile.strengths.length + 1)
-  }
-
-  // RULE: limitations cannot be fewer than rule-based (AI cannot drop them)
-  // If AI dropped limitations, append the missing rule-based ones
-  if (profile.limitations.length > 0 && synthesis.limitations.length < profile.limitations.length) {
-    const missing = profile.limitations.slice(synthesis.limitations.length)
-    synthesis.limitations = [...synthesis.limitations, ...missing.map(f => f.text)]
-  }
-
-  // RULE: weakIdeation must appear in warningScenarios
+  // RULE: weakIdeation must appear in paragraph2 and paragraph4
   if (profile.weakIdeation) {
-    const hasIdeationWarn = synthesis.warningScenarios.some(s =>
-      /идеа|генер|идей|концепц|оригинал/i.test(s)
-    )
-    if (!hasIdeationWarn) {
-      synthesis.warningScenarios.unshift(
-        'Запуск без готовой концепции с расчётом на самостоятельный поиск идеи — твоя способность генерировать принципиально новые идеи с нуля слабая, это подтверждено данными'
-      )
+    const ideationRx = /идеа|генер|идей|концепц|придумыва/i
+    if (synthesis.paragraph2 && !ideationRx.test(synthesis.paragraph2)) {
+      synthesis.paragraph2 =
+        'Придумывать идеи с нуля — не твоё. Это подтверждено данными. ' +
+        synthesis.paragraph2
     }
-    const hasIdeationLim = synthesis.limitations.some(s =>
-      /идеа|генер|идей/i.test(s)
-    )
-    if (!hasIdeationLim) {
-      synthesis.limitations.push(
-        'Самостоятельная генерация новых идей с нуля затруднена — данные диагностики это подтверждают'
-      )
+    if (synthesis.paragraph4 && !ideationRx.test(synthesis.paragraph4)) {
+      synthesis.paragraph4 +=
+        ' Не стоит идти туда, где нужно самостоятельно генерировать принципиально новые идеи — это не твой стиль.'
     }
   }
-
-  // RULE: filter out block terminology that leaked into output
-  const blockTerms = /\b(HEXACO|ESE|EntreComp|Schwartz|PVQ|Darwinian|Communitarian|Missionary|Б[1-6])\b/gi
-  const clean = (s: string) => s.replace(blockTerms, '').replace(/\s{2,}/g, ' ').trim()
-
-  synthesis.coreProfile = clean(synthesis.coreProfile)
-  synthesis.launchStyle = clean(synthesis.launchStyle)
-  synthesis.strengths = synthesis.strengths.map(clean).filter(Boolean)
-  synthesis.limitations = synthesis.limitations.map(clean).filter(Boolean)
-  synthesis.opportunityTypes = synthesis.opportunityTypes.map(clean).filter(Boolean)
-  synthesis.warningScenarios = synthesis.warningScenarios.map(clean).filter(Boolean)
 
   return synthesis
 }
