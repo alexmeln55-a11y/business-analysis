@@ -307,6 +307,13 @@ function ESEQuestion({
           <span style={{ fontSize: '11px', color: '#6B5D52' }}>полностью уверен</span>
         </div>
 
+        {/* Degree label — derived purely from value, hidden when noExperience */}
+        {value > 0 && !noExperience && (
+          <div style={{ marginTop: '10px', fontSize: '12px', color: '#B57A56', fontWeight: 500 }}>
+            {value}/7 — {valueToLabel(value)}
+          </div>
+        )}
+
 
       </div>
 
