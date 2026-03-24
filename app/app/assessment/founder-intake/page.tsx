@@ -187,6 +187,17 @@ export default function FounderIntakePage() {
     if (currentIdx > 0) jumpToQuestion(currentIdx - 1)
   }
 
+  function handleReset() {
+    try {
+      localStorage.removeItem(BLOCK1_AI_STORAGE_KEY)
+      localStorage.removeItem(BLOCK1_IDX_KEY)
+    } catch {}
+    setAnswers({})
+    setCurrentIdx(0)
+    setAllDone(false)
+    resetQuestionState()
+  }
+
   // ── AI API call ───────────────────────────────────────────────
   async function callClarify(
     qId: string,
@@ -336,7 +347,7 @@ export default function FounderIntakePage() {
           <button onClick={() => router.push('/assessment')} style={{ background: '#C17F3E', color: '#0F0D0A', border: 'none', borderRadius: '8px', padding: '12px 24px', fontSize: '14px', fontWeight: 600, cursor: 'pointer' }}>
             Перейти к следующему блоку
           </button>
-          <button onClick={() => { saveIdx(0); jumpToQuestion(0) }} style={{ background: 'transparent', border: '1px solid #2A2018', color: '#9B8A7A', borderRadius: '8px', padding: '12px 16px', fontSize: '13px', cursor: 'pointer' }}>
+          <button onClick={handleReset} style={{ background: 'transparent', border: '1px solid #2A2018', color: '#9B8A7A', borderRadius: '8px', padding: '12px 16px', fontSize: '13px', cursor: 'pointer' }}>
             Пройти заново
           </button>
         </div>
