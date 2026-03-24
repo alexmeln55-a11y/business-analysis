@@ -227,7 +227,6 @@ export default function AssessmentOverviewPage() {
   )
 
   const allDone = profile.completedBlocks === 6
-  const canGenerateAI = profile.completedBlocks >= 3
 
   const handleGenerateAI = async () => {
     setAiLoading(true)
@@ -246,6 +245,14 @@ export default function AssessmentOverviewPage() {
     }
     setAiLoading(false)
   }
+
+  // Auto-trigger AI when all 6 blocks complete
+  useEffect(() => {
+    if (loaded && allDone && !aiSynthesis && !aiLoading) {
+      handleGenerateAI()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, allDone])
 
   if (!loaded) return null
 
@@ -301,7 +308,11 @@ export default function AssessmentOverviewPage() {
             padding: '28px 32px',
             marginBottom: '28px',
           }}>
-            {aiSynthesis ? (
+            {aiLoading ? (
+              <p style={{ fontSize: '15px', color: '#6B5D52', fontStyle: 'italic', margin: 0 }}>
+                Анализируем ваш профиль...
+              </p>
+            ) : aiSynthesis ? (
               // AI-текст: 4 абзаца
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {[aiSynthesis.paragraph1, aiSynthesis.paragraph2, aiSynthesis.paragraph3, aiSynthesis.paragraph4]
@@ -330,51 +341,22 @@ export default function AssessmentOverviewPage() {
                     Заполните блоки диагностики — профиль появится автоматически
                   </p>
                 )}
+                {aiError && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '8px' }}>
+                    <span style={{ fontSize: '13px', color: '#D09062' }}>{aiError}</span>
+                    <button onClick={handleGenerateAI} style={{
+                      backgroundColor: 'transparent', color: '#B57A56',
+                      border: '1px solid rgba(181,122,86,0.30)', borderRadius: '10px',
+                      padding: '6px 14px', fontSize: '13px', cursor: 'pointer',
+                    }}>
+                      Повторить
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-          {/* AI button */}
-          {canGenerateAI && (
-            <div style={{
-              backgroundColor: '#1A1613', borderRadius: '16px',
-              padding: '18px 22px', border: '1px solid rgba(244,237,227,0.08)',
-              marginBottom: '48px',
-            }}>
-              {aiSynthesis ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{
-                    fontSize: '11px', fontWeight: 600, color: '#6BA87A',
-                    backgroundColor: 'rgba(107,168,122,0.12)', padding: '3px 10px', borderRadius: '9px',
-                  }}>AI-анализ</span>
-                  <span style={{ fontSize: '13px', color: '#6B5D52' }}>Текст сгенерирован на основе ваших данных</span>
-                </div>
-              ) : (
-                <div>
-                  <div style={{ fontSize: '14px', color: '#CDBEAE', marginBottom: '12px' }}>
-                    AI переведёт данные диагностики в один связный текст простыми словами.
-                    {' '}<span style={{ color: '#6B5D52' }}>Только из ваших ответов, без фантазий.</span>
-                  </div>
-                  {aiError && (
-                    <div style={{ fontSize: '13px', color: '#D09062', marginBottom: '10px' }}>{aiError}</div>
-                  )}
-                  <button
-                    onClick={handleGenerateAI}
-                    disabled={aiLoading}
-                    style={{
-                      backgroundColor: aiLoading ? 'rgba(181,122,86,0.15)' : '#B57A56',
-                      color: aiLoading ? '#9B8A7A' : '#F4EDE3',
-                      border: 'none', borderRadius: '12px',
-                      padding: '10px 20px', fontSize: '14px', fontWeight: 600,
-                      cursor: aiLoading ? 'default' : 'pointer',
-                    }}
-                  >
-                    {aiLoading ? 'Генерирую...' : 'Сгенерировать текст профиля →'}
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
         </>
       )}
 
