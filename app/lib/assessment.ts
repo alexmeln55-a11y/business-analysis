@@ -494,6 +494,7 @@ export interface IntakeQuestionAnswer {
   finalTag: string  // always from per-question whitelist
   confidence: 'high' | 'medium' | 'low'
   status: IntakeQuestionStatus
+  reason_code?: string
 }
 
 export type Block1AIAnswers = Record<string, IntakeQuestionAnswer>

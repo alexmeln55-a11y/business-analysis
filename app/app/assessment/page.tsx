@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { INTAKE_STORAGE_KEY, ESE_STORAGE_KEY, HEXACO_STORAGE_KEY, VALUES_STORAGE_KEY, IDENTITY_STORAGE_KEY, ENTRECOMP_STORAGE_KEY } from '@/lib/assessment'
+import { BLOCK1_AI_STORAGE_KEY, ESE_STORAGE_KEY, HEXACO_STORAGE_KEY, VALUES_STORAGE_KEY, IDENTITY_STORAGE_KEY, ENTRECOMP_STORAGE_KEY } from '@/lib/assessment'
 
 type BlockStatus = 'completed' | 'available' | 'upcoming'
 
@@ -75,7 +75,7 @@ export default function AssessmentPage() {
 
   useEffect(() => {
     try {
-      const b1 = localStorage.getItem(INTAKE_STORAGE_KEY)
+      const b1 = localStorage.getItem(BLOCK1_AI_STORAGE_KEY)
       const b2 = localStorage.getItem(ESE_STORAGE_KEY)
       const b3 = localStorage.getItem(HEXACO_STORAGE_KEY)
       const b4 = localStorage.getItem(VALUES_STORAGE_KEY)
@@ -84,7 +84,14 @@ export default function AssessmentPage() {
       const hasNum = (raw: string) => Object.values(JSON.parse(raw)).some((v) => typeof v === 'number' && v > 0)
       if (b1) {
         const parsed = JSON.parse(b1)
-        setBlock1Done(Object.values(parsed).some((v) => typeof v === 'string' && (v as string).trim().length > 0))
+        // Block 1 done if at least one question is resolved/low_confidence/skipped
+        setBlock1Done(Object.values(parsed).some((v: unknown) => {
+          if (typeof v === 'object' && v !== null && 'status' in v) {
+            const s = (v as { status: string }).status
+            return s === 'resolved' || s === 'low_confidence' || s === 'skipped'
+          }
+          return false
+        }))
       }
       if (b2) setBlock2Done(hasNum(b2))
       if (b3) setBlock3Done(hasNum(b3))

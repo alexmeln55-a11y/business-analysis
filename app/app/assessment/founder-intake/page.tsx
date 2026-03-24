@@ -25,7 +25,7 @@ const QUESTIONS = [
   { id: 'q5',  section: 'Рыночный доступ',         text: 'С какими типами клиентов или отраслями вы уже работали? Есть ли контакты, которым можно предложить что-то новое?' },
   { id: 'q6',  section: 'Рыночный доступ',         text: 'Через какой канал вы могли бы найти первых покупателей прямо сейчас?' },
   { id: 'q7',  section: 'Рыночный доступ',         text: 'Есть ли у вас партнёры, поставщики, подрядчики или аудитория, с которой уже есть контакт?' },
-  { id: 'q8',  section: 'Рыночный доступ',         text: 'Кому именно вы могли бы продать что-то новое уже в первые 30 дней — конкретно, не абстрактно?' },
+  { id: 'q8',  section: 'Рыночный доступ',         text: 'Есть ли у вас люди или компании, которым можно предложить что-то новое — с кем уже есть доверие или история работы?' },
   { id: 'q9',  section: 'Контекст и мотивация',    text: 'Почему вы сейчас ищете новую бизнес-возможность? Что не устраивает в текущей ситуации?' },
   { id: 'q10', section: 'Контекст и мотивация',    text: 'Что вы уже пробовали запускать или менять? Что сработало, а что нет?' },
   { id: 'q11', section: 'Контекст и мотивация',    text: 'Что останавливало вас раньше от запуска нового направления?' },
@@ -59,6 +59,7 @@ export default function FounderIntakePage() {
   const [mainInput, setMainInput] = useState('')
   const [clarificationInput, setClarificationInput] = useState('')
   const [clarifyingQuestion, setClarifyingQuestion] = useState('')
+  const [isMeta, setIsMeta] = useState(false)
   const [clarificationHistory, setClarificationHistory] = useState<ClarificationMessage[]>([])
   const [rawAnswer, setRawAnswer] = useState('')
   const [errorMsg, setErrorMsg] = useState('')
@@ -161,6 +162,7 @@ export default function FounderIntakePage() {
     setClarificationHistory([])
     setRawAnswer('')
     setErrorMsg('')
+    setIsMeta(false)
   }
 
   // ── Advance: always sequential, never skip questions ──────────
@@ -233,6 +235,7 @@ export default function FounderIntakePage() {
       finalClarifiedAnswer?: string
       finalTag?: string
       confidence?: 'high' | 'medium' | 'low'
+      reason_code?: string
     }
   }
 
@@ -262,9 +265,10 @@ export default function FounderIntakePage() {
         // No auto-advance — user presses "Далее →" manually
         void updated
       } else {
-        devLog('clarification needed', { question: result.clarifyingQuestion })
+        devLog('clarification needed', { question: result.clarifyingQuestion, reason_code: result.reason_code })
         setClarifyingQuestion(result.clarifyingQuestion ?? 'Уточните, пожалуйста.')
         setClarificationHistory([{ role: 'ai', content: result.clarifyingQuestion ?? '' }])
+        setIsMeta(result.reason_code === 'meta_confusion')
         setPhase('clarifying')
       }
     } catch (err) {
@@ -302,13 +306,14 @@ export default function FounderIntakePage() {
         setPhase('resolved')
         void updated
       } else {
-        devLog('second clarification needed', { question: result.clarifyingQuestion })
+        devLog('second clarification needed', { question: result.clarifyingQuestion, reason_code: result.reason_code })
         const updatedHistory: ClarificationMessage[] = [
           ...newHistory,
           { role: 'ai', content: result.clarifyingQuestion ?? '' },
         ]
         setClarifyingQuestion(result.clarifyingQuestion ?? 'Уточните, пожалуйста.')
         setClarificationHistory(updatedHistory)
+        setIsMeta(result.reason_code === 'meta_confusion')
         setClarificationInput('')
         setPhase('clarifying')
       }
@@ -458,8 +463,10 @@ export default function FounderIntakePage() {
               <div style={{ fontSize: '11px', color: '#5A4A3A', marginBottom: '4px' }}>Ваш ответ</div>
               <div style={{ fontSize: '14px', color: '#9B8A7A', lineHeight: 1.4 }}>{rawAnswer}</div>
             </div>
-            <div style={{ background: '#1E1A14', border: '1px solid #3A2E20', borderRadius: '8px', padding: '14px 16px', marginBottom: '16px' }}>
-              <div style={{ fontSize: '11px', color: '#C17F3E', marginBottom: '6px', letterSpacing: '0.06em' }}>AI уточняет</div>
+            <div style={{ background: isMeta ? '#141820' : '#1E1A14', border: `1px solid ${isMeta ? '#2A3A50' : '#3A2E20'}`, borderRadius: '8px', padding: '14px 16px', marginBottom: '16px' }}>
+              <div style={{ fontSize: '11px', color: isMeta ? '#7A9EC0' : '#C17F3E', marginBottom: '6px', letterSpacing: '0.06em' }}>
+                {isMeta ? 'Уточним вопрос' : 'AI уточняет'}
+              </div>
               <div style={{ fontSize: '15px', color: '#F2EBE1', lineHeight: 1.5 }}>{clarifyingQuestion}</div>
             </div>
             <textarea
