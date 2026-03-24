@@ -181,6 +181,7 @@ export default function AssessmentOverviewPage() {
   const [identityScenarios, setIdentityScenarios] = useState<IdentityScenarios | null>(null)
   const [entrecompV2Answers, setEntrecompV2Answers] = useState<EntreCompV2Answers | null>(null)
   const [loaded, setLoaded] = useState(false)
+  const [blocksExpanded, setBlocksExpanded] = useState(false)
   const [aiSynthesis, setAiSynthesis] = useState<AISynthesis | null>(null)
   const [aiLoading, setAiLoading] = useState(false)
   const [aiError, setAiError] = useState<string | null>(null)
@@ -346,12 +347,28 @@ export default function AssessmentOverviewPage() {
 
       </>
 
-      {/* ── Разделитель ─────────────────────────────────────── */}
-      <div style={{ height: '1px', backgroundColor: 'rgba(244,237,227,0.06)', margin: '8px 0 36px' }} />
+      {/* ── Разделитель + toggle ─────────────────────────── */}
+      <div style={{ height: '1px', backgroundColor: 'rgba(244,237,227,0.06)', margin: '8px 0 28px' }} />
 
-      <div style={{ fontSize: '12px', color: '#9B8A7A', letterSpacing: '0.06em', marginBottom: '32px' }}>
-        РАЗБОР ПО БЛОКАМ — ДОКАЗАТЕЛЬНАЯ БАЗА
-      </div>
+      <button
+        onClick={() => setBlocksExpanded(v => !v)}
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: '7px',
+          background: 'transparent', border: '1px solid rgba(244,237,227,0.10)',
+          borderRadius: '20px', padding: '5px 12px 5px 14px',
+          cursor: 'pointer', marginBottom: blocksExpanded ? '28px' : '0',
+          transition: 'border-color 0.15s',
+        }}
+      >
+        <span style={{ fontSize: '11px', color: '#6B5D52', letterSpacing: '0.06em' }}>
+          РАЗБОР ПО БЛОКАМ
+        </span>
+        <span style={{ fontSize: '11px', color: '#4A3A2A' }}>
+          {blocksExpanded ? '▲' : '▼'}
+        </span>
+      </button>
+
+      {blocksExpanded && <>
 
       {/* Block 1 */}
       {b1tags.length > 0
@@ -425,6 +442,8 @@ export default function AssessmentOverviewPage() {
         </BlockDetail>
       )}
       {!entrecompHasData && <IncompleteBlock label="Блок 6 · EntreComp" href="/assessment/entrecomp" />}
+
+      </>}
 
       {/* ── Note ───────────────────────────────────────────── */}
       <div style={{
