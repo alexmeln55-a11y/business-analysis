@@ -198,6 +198,16 @@ export default function FounderIntakePage() {
     resetQuestionState()
   }
 
+  // ── Dev log helper ────────────────────────────────────────────
+  function devLog(label: string, data?: unknown) {
+    if (process.env.NODE_ENV !== 'development') return
+    if (data !== undefined) {
+      console.log(`[Block1] ${label}`, data)
+    } else {
+      console.log(`[Block1] ${label}`)
+    }
+  }
+
   // ── AI API call ───────────────────────────────────────────────
   async function callClarify(
     qId: string,
@@ -205,31 +215,39 @@ export default function FounderIntakePage() {
     raw: string,
     history: ClarificationMessage[],
   ) {
+    devLog('→ AI request', { qId, raw: raw.slice(0, 80), historyLen: history.length })
     const res = await fetch('/api/assessment/clarify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ questionId: qId, questionText: qText, rawAnswer: raw, clarificationHistory: history }),
     })
-    if (!res.ok) throw new Error('api_error')
-    return res.json() as Promise<{
+    if (!res.ok) {
+      devLog('✗ AI response error', { status: res.status })
+      throw new Error('api_error')
+    }
+    const json = await res.json()
+    devLog('← AI response', json)
+    return json as {
       done: boolean
       clarifyingQuestion?: string
       finalClarifiedAnswer?: string
       finalTag?: string
       confidence?: 'high' | 'medium' | 'low'
-    }>
+    }
   }
 
   // ── Submit main answer ────────────────────────────────────────
   async function handleSubmitMain() {
     const input = mainInput.trim()
     if (!input) return
+    devLog('submit main', { qId: currentQ.id, input: input.slice(0, 80) })
     setPhase('loading')
     setErrorMsg('')
     setRawAnswer(input)
     try {
       const result = await callClarify(currentQ.id, currentQ.text, input, [])
       if (result.done) {
+        devLog('resolved after first answer', { tag: result.finalTag, confidence: result.confidence })
         const answer: IntakeQuestionAnswer = {
           questionId: currentQ.id,
           rawAnswer: input,
@@ -241,13 +259,16 @@ export default function FounderIntakePage() {
         }
         const updated = saveAnswer(answer)
         setPhase('resolved')
-        setTimeout(() => advance(updated), 1600)
+        // No auto-advance — user presses "Далее →" manually
+        void updated
       } else {
+        devLog('clarification needed', { question: result.clarifyingQuestion })
         setClarifyingQuestion(result.clarifyingQuestion ?? 'Уточните, пожалуйста.')
         setClarificationHistory([{ role: 'ai', content: result.clarifyingQuestion ?? '' }])
         setPhase('clarifying')
       }
-    } catch {
+    } catch (err) {
+      devLog('✗ submit error', err)
       setPhase('error')
       setErrorMsg('Не удалось получить ответ от AI. Попробуйте ещё раз.')
     }
@@ -257,6 +278,7 @@ export default function FounderIntakePage() {
   async function handleSubmitClarification() {
     const input = clarificationInput.trim()
     if (!input) return
+    devLog('submit clarification', { qId: currentQ.id, input: input.slice(0, 80) })
     setPhase('clarifying_loading')
     setErrorMsg('')
     const newHistory: ClarificationMessage[] = [
@@ -266,6 +288,7 @@ export default function FounderIntakePage() {
     try {
       const result = await callClarify(currentQ.id, currentQ.text, rawAnswer, newHistory)
       if (result.done) {
+        devLog('resolved after clarification', { tag: result.finalTag, confidence: result.confidence })
         const answer: IntakeQuestionAnswer = {
           questionId: currentQ.id,
           rawAnswer,
@@ -277,8 +300,9 @@ export default function FounderIntakePage() {
         }
         const updated = saveAnswer(answer)
         setPhase('resolved')
-        setTimeout(() => advance(updated), 1600)
+        void updated
       } else {
+        devLog('second clarification needed', { question: result.clarifyingQuestion })
         const updatedHistory: ClarificationMessage[] = [
           ...newHistory,
           { role: 'ai', content: result.clarifyingQuestion ?? '' },
@@ -288,7 +312,8 @@ export default function FounderIntakePage() {
         setClarificationInput('')
         setPhase('clarifying')
       }
-    } catch {
+    } catch (err) {
+      devLog('✗ clarification error', err)
       setPhase('error')
       setErrorMsg('Не удалось получить ответ от AI. Попробуйте ещё раз.')
     }
