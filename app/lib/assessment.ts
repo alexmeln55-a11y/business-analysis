@@ -540,6 +540,7 @@ export interface EntreCompV2Answers {
 }
 
 export const ENTRECOMP_V2_STORAGE_KEY = 'entrecomp_v2'
+export const AI_SYNTHESIS_STORAGE_KEY = 'ai_synthesis_v1'
 
 // ── Unified Founder Profile (rule-based) ──────────────────────
 

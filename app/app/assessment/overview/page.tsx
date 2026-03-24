@@ -8,6 +8,7 @@ import {
   HEXACO_STORAGE_KEY, VALUES_STORAGE_KEY,
   IDENTITY_STORAGE_KEY, IDENTITY_SCENARIOS_STORAGE_KEY,
   ENTRECOMP_V2_STORAGE_KEY,
+  AI_SYNTHESIS_STORAGE_KEY,
   calcESEScores, calcHEXACOScores, calcValuesScores,
   calcIdentityScoresWithScenarios, calcIdentityScores,
   calcEntreCompV2Scores,
@@ -194,6 +195,7 @@ export default function AssessmentOverviewPage() {
       const r5 = localStorage.getItem(IDENTITY_STORAGE_KEY); if (r5) setIdentityAnswers(JSON.parse(r5))
       const r5s = localStorage.getItem(IDENTITY_SCENARIOS_STORAGE_KEY); if (r5s) setIdentityScenarios(JSON.parse(r5s))
       const r6v2 = localStorage.getItem(ENTRECOMP_V2_STORAGE_KEY); if (r6v2) setEntrecompV2Answers(JSON.parse(r6v2))
+      const rAI = localStorage.getItem(AI_SYNTHESIS_STORAGE_KEY); if (rAI) setAiSynthesis(JSON.parse(rAI))
     } catch {}
     setLoaded(true)
   }, [])
@@ -238,8 +240,10 @@ export default function AssessmentOverviewPage() {
         body: JSON.stringify({ profile }),
       })
       const data = await res.json()
-      if (data.synthesis) setAiSynthesis(data.synthesis)
-      else setAiError(data.error ?? 'Ошибка генерации')
+      if (data.synthesis) {
+        setAiSynthesis(data.synthesis)
+        try { localStorage.setItem(AI_SYNTHESIS_STORAGE_KEY, JSON.stringify(data.synthesis)) } catch {}
+      } else setAiError(data.error ?? 'Ошибка генерации')
     } catch {
       setAiError('Ошибка соединения с сервером')
     }

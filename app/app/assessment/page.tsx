@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { BLOCK1_AI_STORAGE_KEY, ESE_STORAGE_KEY, HEXACO_STORAGE_KEY, VALUES_STORAGE_KEY, IDENTITY_STORAGE_KEY, ENTRECOMP_STORAGE_KEY } from '@/lib/assessment'
 
@@ -65,6 +66,7 @@ const STATUS_COLOR: Record<BlockStatus, string> = {
 }
 
 export default function AssessmentPage() {
+  const router = useRouter()
   const [block1Done, setBlock1Done] = useState(false)
   const [block2Done, setBlock2Done] = useState(false)
   const [block3Done, setBlock3Done] = useState(false)
@@ -114,6 +116,11 @@ export default function AssessmentPage() {
 
   // All 6 must be done — block1 included
   const allDone = block1Done && block2Done && block3Done && block4Done && block5Done && block6Done
+
+  // Redirect to results if all blocks are complete
+  useEffect(() => {
+    if (loaded && allDone) router.replace('/assessment/overview')
+  }, [loaded, allDone, router])
 
   // CTA: point to the first incomplete block (block1 always checked first)
   const ctaHref = allDone
