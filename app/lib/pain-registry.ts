@@ -338,7 +338,89 @@ function toPainListItem(raw: PainDetailItem): PainListItem {
   }
 }
 
-// ── Mock adapter (replace with apiAdapter when backend is ready) ──────────────
+// ── Real DB adapter (enable when pain_registry has data) ─────────────────────
+// To switch: change `export const painAdapter` below to use `createDbAdapter()`
+
+interface PainRegistryRow {
+  pain_id: string; topic_id: string; vertical: string; segment: string
+  title: string; short_description: string; full_description: string | null
+  target_who: string | null; context: string | null; workaround: string | null
+  consequences: string | null; evidence_count: number; market_pain_score: number
+  source_types: string; last_seen_at: string; status: string; tags: string
+  score_breakdown: string; evidence_summary: string | null
+  created_at: string; updated_at: string
+}
+
+function rowToListItem(row: PainRegistryRow): PainListItem {
+  return {
+    pain_id: row.pain_id,
+    title: row.title,
+    segment: row.segment,
+    short_description: row.short_description,
+    vertical: row.vertical,
+    market_pain_score: row.market_pain_score,
+    evidence_count: row.evidence_count,
+    source_types: JSON.parse(row.source_types) as string[],
+    last_seen_at: row.last_seen_at.slice(0, 10),
+    status: row.status as PainStatus,
+    tags: JSON.parse(row.tags) as string[],
+  }
+}
+
+function rowToDetailItem(row: PainRegistryRow): PainDetailItem {
+  const scoreBreakdown = JSON.parse(row.score_breakdown) as Record<string, number>
+  return {
+    ...rowToListItem(row),
+    full_description: row.full_description ?? row.short_description,
+    target_who: row.target_who ?? row.segment,
+    context: row.context ?? '',
+    workaround: row.workaround ?? '',
+    consequences: row.consequences ?? '',
+    score_breakdown: {
+      frequency: scoreBreakdown.frequency ?? 5,
+      intensity: scoreBreakdown.intensity ?? 5,
+      willingness_to_pay: scoreBreakdown.willingness_to_pay ?? 5,
+      market_size: scoreBreakdown.market_size ?? 5,
+    },
+    evidence_summary: row.evidence_summary ?? `${row.evidence_count} сигналов`,
+  }
+}
+
+function createDbAdapter(): PainRegistryAdapter {
+  // Lazy require to avoid bundling better-sqlite3 on client side.
+  // Only call from server-side code (API routes, server components).
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-explicit-any
+  const Database = require('better-sqlite3') as any
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const path = require('path') as typeof import('path')
+  const DATA_DIR = process.env.DATA_DIR ?? path.join(process.cwd(), '..', 'data')
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db: any = new Database(path.join(DATA_DIR, 'opportunity.db'), { readonly: true })
+
+  return {
+    async listPains() {
+      const rows = db.prepare(`
+        SELECT * FROM pain_registry ORDER BY market_pain_score DESC
+      `).all() as PainRegistryRow[]
+      return rows.map(rowToListItem)
+    },
+    async getPainDetail(id) {
+      const row = db.prepare(`SELECT * FROM pain_registry WHERE pain_id = ?`).get(id) as PainRegistryRow | undefined
+      return row ? rowToDetailItem(row) : null
+    },
+    async getPersonalMatches() {
+      // Personal matching will be implemented in a later chunk
+      return []
+    },
+  }
+}
+
+// ── Active adapter ─────────────────────────────────────────────────────────────
+// Switch to real DB once pain_registry has data:
+// export const painAdapter: PainRegistryAdapter = createDbAdapter()
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _dbAdapter = createDbAdapter
 
 export const painAdapter: PainRegistryAdapter = {
   async listPains() {
