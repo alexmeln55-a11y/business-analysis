@@ -310,10 +310,19 @@ export const MOCK_PERSONAL_MATCHES: PersonalPainMatchItem[] = [
   },
 ]
 
-// ── Data adapter layer ────────────────────────────────────────────────────────
-// Maps pain_registry → PainListItem (strips internal fields, normalises shape)
+// ── Adapter interface ─────────────────────────────────────────────────────────
+// Swap implementation here when connecting real pain_registry / API.
+// UI never reads raw backend fields — always goes through this contract.
 
-export function toPainListItem(raw: PainDetailItem): PainListItem {
+export interface PainRegistryAdapter {
+  listPains(): Promise<PainListItem[]>
+  getPainDetail(id: string): Promise<PainDetailItem | null>
+  getPersonalMatches(): Promise<PersonalPainMatchItem[]>
+}
+
+// ── Mapping helpers ───────────────────────────────────────────────────────────
+
+function toPainListItem(raw: PainDetailItem): PainListItem {
   return {
     pain_id: raw.pain_id,
     title: raw.title,
@@ -329,10 +338,16 @@ export function toPainListItem(raw: PainDetailItem): PainListItem {
   }
 }
 
-export function getPainListItems(): PainListItem[] {
-  return MOCK_REGISTRY.map(toPainListItem)
-}
+// ── Mock adapter (replace with apiAdapter when backend is ready) ──────────────
 
-export function getPainDetail(id: string): PainDetailItem | undefined {
-  return MOCK_REGISTRY.find(p => p.pain_id === id)
+export const painAdapter: PainRegistryAdapter = {
+  async listPains() {
+    return MOCK_REGISTRY.map(toPainListItem)
+  },
+  async getPainDetail(id) {
+    return MOCK_REGISTRY.find(p => p.pain_id === id) ?? null
+  },
+  async getPersonalMatches() {
+    return MOCK_PERSONAL_MATCHES
+  },
 }

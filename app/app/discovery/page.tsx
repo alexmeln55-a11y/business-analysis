@@ -1,16 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useState, useEffect, useCallback, useMemo, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
-  getPainListItems, getPainDetail, MOCK_PERSONAL_MATCHES,
-  type PainListItem, type PersonalPainMatchItem, type FitLabel,
+  painAdapter,
+  type PainListItem, type PainDetailItem, type PersonalPainMatchItem, type FitLabel,
 } from '@/lib/pain-registry'
-
-// ── Constants ─────────────────────────────────────────────────────────────────
-
-const ALL_ITEMS = getPainListItems()
-const VERTICALS = [...new Set(ALL_ITEMS.map(p => p.vertical))].sort()
 
 const STATUS_LABEL: Record<string, string> = {
   new: 'Новая', validated: 'Подтверждена', high_pain: 'Высокая боль', archived: 'Архив',
@@ -79,17 +74,18 @@ function StatusBadge({ status }: { status: string }) {
 
 // ── Detail drawer ─────────────────────────────────────────────────────────────
 
-function DetailDrawer({ id, onClose }: { id: string; onClose: () => void }) {
-  const item = getPainDetail(id)
-  const match = MOCK_PERSONAL_MATCHES.find(m => m.pain_id === id)
-
+function DetailDrawer({
+  item, match, onClose,
+}: {
+  item: PainDetailItem
+  match: PersonalPainMatchItem | null
+  onClose: () => void
+}) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
-
-  if (!item) return null
 
   const Field = ({ label, value }: { label: string; value: string }) => (
     <div style={{ marginBottom: '16px' }}>
@@ -341,8 +337,43 @@ function MatchRow({ item, selected, onClick }: {
 function RequestPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [detailId, setDetailId] = useState<string | null>(null)
 
+  // ── Data state ──────────────────────────────────────────────
+  const [allItems, setAllItems]     = useState<PainListItem[]>([])
+  const [matches, setMatches]       = useState<PersonalPainMatchItem[]>([])
+  const [loading, setLoading]       = useState(true)
+  const [dataError, setDataError]   = useState<string | null>(null)
+
+  // ── Detail drawer state ─────────────────────────────────────
+  const [detailItem, setDetailItem]   = useState<PainDetailItem | null>(null)
+  const [detailMatch, setDetailMatch] = useState<PersonalPainMatchItem | null>(null)
+
+  // ── Load data via adapter ───────────────────────────────────
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setDataError(null)
+    Promise.all([painAdapter.listPains(), painAdapter.getPersonalMatches()])
+      .then(([pains, personalMatches]) => {
+        if (cancelled) return
+        setAllItems(pains)
+        setMatches(personalMatches)
+        setLoading(false)
+      })
+      .catch(() => {
+        if (cancelled) return
+        setDataError('Не удалось загрузить данные')
+        setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [])
+
+  // ── Verticals derived from loaded data ─────────────────────
+  const verticals = useMemo(() =>
+    [...new Set(allItems.map(p => p.vertical))].sort()
+  , [allItems])
+
+  // ── URL params ──────────────────────────────────────────────
   const q        = searchParams.get('q')         ?? ''
   const vertical = searchParams.get('vertical')  ?? ''
   const status   = searchParams.get('status')    ?? ''
@@ -359,8 +390,17 @@ function RequestPageContent() {
   const clearFilters = () => router.replace('?', { scroll: false })
   const hasFilters = !!(q || vertical || status)
 
-  // Filter + sort
-  const filtered = ALL_ITEMS.filter(item => {
+  // ── Open detail drawer via adapter ─────────────────────────
+  const selectItem = useCallback(async (id: string) => {
+    if (detailItem?.pain_id === id) { setDetailItem(null); setDetailMatch(null); return }
+    const item = await painAdapter.getPainDetail(id)
+    if (!item) return
+    setDetailItem(item)
+    setDetailMatch(matches.find(m => m.pain_id === id) ?? null)
+  }, [detailItem, matches])
+
+  // ── Filter + sort ───────────────────────────────────────────
+  const filtered = allItems.filter(item => {
     if (q) {
       const lq = q.toLowerCase()
       const hit = item.title.toLowerCase().includes(lq) ||
@@ -377,7 +417,7 @@ function RequestPageContent() {
   const sorted = [...filtered].sort((a, b) => {
     if (sort === 'evidence') return b.evidence_count - a.evidence_count
     if (sort === 'fresh') return new Date(b.last_seen_at).getTime() - new Date(a.last_seen_at).getTime()
-    return b.market_pain_score - a.market_pain_score  // default: score
+    return b.market_pain_score - a.market_pain_score
   })
 
   const total = sorted.length
@@ -385,9 +425,30 @@ function RequestPageContent() {
   const safePage = Math.min(Math.max(1, page), totalPages)
   const paginated = sorted.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
 
-  const hasProfile = MOCK_PERSONAL_MATCHES.length > 0
+  const hasProfile = matches.length > 0
 
-  const selectItem = (id: string) => setDetailId(prev => prev === id ? null : id)
+  // ── Loading / error states ─────────────────────────────────
+  if (loading) {
+    return (
+      <div style={{ padding: '60px 0', textAlign: 'center' }}>
+        <div style={{ fontSize: '14px', color: '#6B5D52' }}>Загружаем реестр болей...</div>
+      </div>
+    )
+  }
+
+  if (dataError) {
+    return (
+      <div style={{ padding: '60px 0', textAlign: 'center' }}>
+        <div style={{ fontSize: '14px', color: '#C47A3A', marginBottom: '12px' }}>{dataError}</div>
+        <button
+          onClick={() => window.location.reload()}
+          style={{ background: 'none', border: 'none', color: '#B57A56', fontSize: '13px', cursor: 'pointer' }}
+        >
+          Попробовать снова
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -429,7 +490,7 @@ function RequestPageContent() {
           }}
         >
           <option value="">Все вертикали</option>
-          {VERTICALS.map(v => <option key={v} value={v}>{v}</option>)}
+          {verticals.map(v => <option key={v} value={v}>{v}</option>)}
         </select>
 
         <select
@@ -483,7 +544,7 @@ function RequestPageContent() {
         <div>
           {/* Count */}
           <div style={{ fontSize: '12px', color: '#6B5D52', marginBottom: '10px' }}>
-            {total === ALL_ITEMS.length ? `${total} болей` : `${total} из ${ALL_ITEMS.length}`}
+            {total === allItems.length ? `${total} болей` : `${total} из ${allItems.length}`}
           </div>
 
           {paginated.length === 0 ? (
@@ -509,7 +570,7 @@ function RequestPageContent() {
                 <PainRow
                   key={item.pain_id}
                   item={item}
-                  selected={detailId === item.pain_id}
+                  selected={detailItem?.pain_id === item.pain_id}
                   onClick={() => selectItem(item.pain_id)}
                 />
               ))}
@@ -571,11 +632,11 @@ function RequestPageContent() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
-              {MOCK_PERSONAL_MATCHES.map(item => (
+              {matches.map(item => (
                 <MatchRow
                   key={item.pain_id}
                   item={item}
-                  selected={detailId === item.pain_id}
+                  selected={detailItem?.pain_id === item.pain_id}
                   onClick={() => selectItem(item.pain_id)}
                 />
               ))}
@@ -585,8 +646,12 @@ function RequestPageContent() {
       </div>
 
       {/* Detail drawer */}
-      {detailId && (
-        <DetailDrawer id={detailId} onClose={() => setDetailId(null)} />
+      {detailItem && (
+        <DetailDrawer
+          item={detailItem}
+          match={detailMatch}
+          onClose={() => { setDetailItem(null); setDetailMatch(null) }}
+        />
       )}
     </div>
   )
