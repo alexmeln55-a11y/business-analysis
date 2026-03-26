@@ -338,36 +338,48 @@ function toPainListItem(raw: PainDetailItem): PainListItem {
 }
 
 // ── Active adapter ─────────────────────────────────────────────────────────────
-// Reads from /api/megatrends (server-side DB via API route).
-// Falls back to mock data if API is unavailable.
+// Single fetch dedup: listPains() and getPersonalMatches() share one network request
+// when called in the same Promise.all tick.
+
+let _pendingFetch: Promise<{ items: PainListItem[]; matches: PersonalPainMatchItem[] }> | null = null
+const _detailCache = new Map<string, PainDetailItem>()
+
+function fetchAll(): Promise<{ items: PainListItem[]; matches: PersonalPainMatchItem[] }> {
+  if (!_pendingFetch) {
+    _pendingFetch = fetch('/api/megatrends', { cache: 'no-store' })
+      .then(r => { if (!r.ok) throw new Error('api error'); return r.json() })
+      .then(data => ({ items: data.items as PainListItem[], matches: data.matches as PersonalPainMatchItem[] }))
+      .finally(() => { _pendingFetch = null })
+  }
+  return _pendingFetch
+}
 
 export const painAdapter: PainRegistryAdapter = {
   async listPains() {
     try {
-      const res = await fetch('/api/megatrends', { cache: 'no-store' })
-      if (!res.ok) throw new Error('api error')
-      const data = await res.json()
-      return data.items as PainListItem[]
+      const { items } = await fetchAll()
+      return items
     } catch {
       return MOCK_REGISTRY.map(toPainListItem)
     }
   },
   async getPainDetail(id) {
+    if (_detailCache.has(id)) return _detailCache.get(id)!
     try {
       const res = await fetch(`/api/megatrends/${id}`, { cache: 'no-store' })
       if (!res.ok) throw new Error('api error')
       const data = await res.json()
-      return data.item as PainDetailItem
+      const item = data.item as PainDetailItem
+      _detailCache.set(id, item)
+      return item
     } catch {
       return MOCK_REGISTRY.find(p => p.pain_id === id) ?? null
     }
   },
   async getPersonalMatches() {
     try {
-      const res = await fetch('/api/megatrends', { cache: 'no-store' })
-      if (!res.ok) throw new Error('api error')
-      const data = await res.json()
-      return data.matches as PersonalPainMatchItem[]
+      const { matches } = await fetchAll()
+      return matches
     } catch {
       return MOCK_PERSONAL_MATCHES
     }

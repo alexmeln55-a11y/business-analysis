@@ -36,6 +36,7 @@ const SOURCE_ABBR: Record<string, string> = {
   mckinsey_health: 'MC', раэк: 'РЭ', сдэк: 'СД', superjob: 'SJ',
 }
 const PAGE_SIZE = 10
+const STATUS_ORDER: Record<string, number> = { shortlist: 0, watchlist: 1, archive: 2, new: 3, validated: 1, high_pain: 0, archived: 4 }
 
 // ── Small shared components ───────────────────────────────────────────────────
 
@@ -405,7 +406,8 @@ function RequestPageContent() {
     router.replace(`?${p.toString()}`, { scroll: false })
   }, [router, searchParams])
 
-  const clearFilters = () => router.replace('?', { scroll: false })
+  const clearFilters = useCallback(() => router.replace('?', { scroll: false }), [router])
+  const closeDrawer = useCallback(() => { setDetailItem(null); setDetailMatch(null) }, [])
   const hasFilters = !!(q || vertical || status)
 
   // ── Open detail drawer via adapter ─────────────────────────
@@ -417,8 +419,8 @@ function RequestPageContent() {
     setDetailMatch(matches.find(m => m.pain_id === id) ?? null)
   }, [detailItem, matches])
 
-  // ── Filter + sort ───────────────────────────────────────────
-  const filtered = allItems.filter(item => {
+  // ── Filter + sort (memoized — don't recompute on hover/unrelated state) ──────
+  const filtered = useMemo(() => allItems.filter(item => {
     if (q) {
       const lq = q.toLowerCase()
       const hit = item.title.toLowerCase().includes(lq) ||
@@ -430,17 +432,15 @@ function RequestPageContent() {
     if (vertical && item.vertical !== vertical) return false
     if (status && item.status !== status) return false
     return true
-  })
+  }), [allItems, q, vertical, status])
 
-  const STATUS_ORDER: Record<string, number> = { shortlist: 0, watchlist: 1, archive: 2, new: 3, validated: 1, high_pain: 0, archived: 4 }
-  const sorted = [...filtered].sort((a, b) => {
+  const sorted = useMemo(() => [...filtered].sort((a, b) => {
     if (sort === 'evidence') return b.evidence_count - a.evidence_count
     if (sort === 'fresh') return new Date(b.last_seen_at).getTime() - new Date(a.last_seen_at).getTime()
-    // Default: shortlist first, then by score
     const so = (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3)
     if (so !== 0) return so
     return b.market_pain_score - a.market_pain_score
-  })
+  }), [filtered, sort])
 
   const total = sorted.length
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
@@ -673,7 +673,7 @@ function RequestPageContent() {
         <DetailDrawer
           item={detailItem}
           match={detailMatch}
-          onClose={() => { setDetailItem(null); setDetailMatch(null) }}
+          onClose={closeDrawer}
         />
       )}
     </div>
