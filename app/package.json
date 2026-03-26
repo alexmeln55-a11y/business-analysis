@@ -18,7 +18,6 @@
     "pipeline:normalize-megatrends": "tsx pipeline/scripts/normalize-megatrends.ts"
   },
   "dependencies": {
-    "better-sqlite3": "^9.0.0",
     "dotenv": "^16.0.0",
     "openai": "^4.0.0",
     "next": "^15.0.0",
@@ -27,7 +26,6 @@
     "telegram": "^2.25.0"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

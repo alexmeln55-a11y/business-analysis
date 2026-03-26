@@ -337,88 +337,9 @@ function toPainListItem(raw: PainDetailItem): PainListItem {
   }
 }
 
-// ── Real DB adapter (megatrends table) ────────────────────────────────────────
-// Switch `painAdapter` below to `createDbAdapter()` once DB has data.
-
-interface MegatrendRow {
-  id: string; title: string; summary: string
-  why_growing: string | null; time_horizon: string | null; geography: string | null
-  vertical: string; source_name: string | null; source_url: string | null
-  structural_strength: number; demand_signal: number; longevity: number
-  geographic_spread: number; clarity_of_need: number; hype_risk: number
-  total_score: number; status: string
-  created_at: string; updated_at: string
-}
-
-function megatrendRowToListItem(row: MegatrendRow): PainListItem {
-  return {
-    pain_id: row.id,
-    title: row.title,
-    segment: row.geography ?? '',
-    short_description: row.summary,
-    vertical: row.vertical,
-    market_pain_score: row.total_score,
-    evidence_count: row.source_name ? row.source_name.split(',').length : 1,
-    source_types: row.source_name ? row.source_name.split(',').map(s => s.trim().toLowerCase().replace(/\s+/g, '_')) : [],
-    last_seen_at: row.updated_at.slice(0, 10),
-    status: row.status as PainStatus,
-    tags: [row.vertical, row.geography ?? '', row.time_horizon ?? ''].filter(Boolean),
-  }
-}
-
-function megatrendRowToDetailItem(row: MegatrendRow): PainDetailItem {
-  return {
-    ...megatrendRowToListItem(row),
-    full_description: row.why_growing ?? row.summary,
-    target_who: [row.time_horizon, row.geography].filter(Boolean).join(' · '),
-    context: `Вертикаль: ${row.vertical}. ${row.summary}`,
-    workaround: '',
-    consequences: '',
-    score_breakdown: {
-      structural_strength: row.structural_strength,
-      demand_signal: row.demand_signal,
-      longevity: row.longevity,
-      geographic_spread: row.geographic_spread,
-    },
-    evidence_summary: row.source_name
-      ? `Источники: ${row.source_name}.`
-      : 'Данные из открытых источников.',
-  }
-}
-
-function createDbAdapter(): PainRegistryAdapter {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-explicit-any
-  const Database = require('better-sqlite3') as any
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const path = require('path') as typeof import('path')
-  const DATA_DIR = process.env.DATA_DIR ?? path.join(process.cwd(), '..', 'data')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db: any = new Database(path.join(DATA_DIR, 'opportunity.db'), { readonly: true })
-
-  return {
-    async listPains() {
-      const rows = db.prepare(`
-        SELECT * FROM megatrends WHERE status != 'archived' ORDER BY total_score DESC
-      `).all() as MegatrendRow[]
-      return rows.map(megatrendRowToListItem)
-    },
-    async getPainDetail(id) {
-      const row = db.prepare(`SELECT * FROM megatrends WHERE id = ?`).get(id) as MegatrendRow | undefined
-      return row ? megatrendRowToDetailItem(row) : null
-    },
-    async getPersonalMatches() {
-      // Personal matching will be implemented in a later chunk
-      return []
-    },
-  }
-}
-
 // ── Active adapter ─────────────────────────────────────────────────────────────
-// Once `npm run pipeline:seed-megatrends` has run, switch to real DB:
-// export const painAdapter: PainRegistryAdapter = createDbAdapter()
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _dbAdapter = createDbAdapter
+// DB adapter lives in lib/pain-registry-db.ts (server-only).
+// Switch there once pipeline:seed-megatrends has run.
 
 export const painAdapter: PainRegistryAdapter = {
   async listPains() {
