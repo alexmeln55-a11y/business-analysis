@@ -35,7 +35,7 @@ function rowToListItem(row: MegatrendRow): PainListItem {
 function rowToDetailItem(row: MegatrendRow): PainDetailItem {
   return {
     ...rowToListItem(row),
-    full_description: row.why_growing ?? row.summary,
+    full_description: row.summary,
     target_who: [row.time_horizon, row.geography].filter(Boolean).join(' · '),
     context: row.why_growing ?? '',
     workaround: '',

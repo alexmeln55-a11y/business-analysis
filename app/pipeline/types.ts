@@ -53,6 +53,12 @@ export interface MegatrendRow {
   clarity_of_need: number
   hype_risk: number
   total_score: number
+  structural_strength_reason: string | null
+  demand_signal_reason: string | null
+  longevity_reason: string | null
+  geographic_spread_reason: string | null
+  clarity_of_need_reason: string | null
+  hype_risk_reason: string | null
   status: string
   canonical_key: string | null
   created_at: string

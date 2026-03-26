@@ -8,8 +8,8 @@ import {
 } from '@/lib/pain-registry'
 
 const STATUS_LABEL: Record<string, string> = {
-  shortlist: 'Шортлист', watchlist: 'Наблюдение', archive: 'Архив',
-  new: 'Новый', validated: 'Подтверждён', high_pain: 'Быстрый рост', archived: 'Архив',
+  shortlist: 'Приоритетные', watchlist: 'Наблюдение', archive: 'Слабые',
+  new: 'Новый', validated: 'Подтверждён', high_pain: 'Быстрый рост', archived: 'Слабые',
 }
 const STATUS_COLOR: Record<string, string> = {
   shortlist: '#B57A56', watchlist: '#6BA87A', archive: '#6B5D52',
@@ -171,13 +171,22 @@ function DetailDrawer({
           </div>
         </div>
 
-        {/* Description */}
-        <p style={{ fontSize: '14px', color: '#CDBEAE', lineHeight: 1.7, margin: '0 0 20px' }}>
-          {item.full_description}
-        </p>
+        {/* Description: summary + why_growing, без дубля */}
+        {item.full_description && (
+          <div style={{ marginBottom: '16px' }}>
+            <div style={{ fontSize: '10px', color: '#6B5D52', letterSpacing: '0.07em', marginBottom: '4px' }}>СУТЬ ТРЕНДА</div>
+            <p style={{ fontSize: '14px', color: '#CDBEAE', lineHeight: 1.7, margin: 0 }}>
+              {item.full_description}
+            </p>
+          </div>
+        )}
+
+        {item.context && item.context !== item.full_description &&
+          item.context.slice(0, 60) !== (item.full_description ?? '').slice(0, 60) && (
+          <Field label="ПОЧЕМУ РАСТЁТ" value={item.context} />
+        )}
 
         <Field label="ГОРИЗОНТ И ОХВАТ" value={item.target_who} />
-        <Field label="ПОЧЕМУ РАСТЁТ" value={item.context} />
         {item.workaround && <Field label="ТЕКУЩИЕ РЕШЕНИЯ" value={item.workaround} />}
         {item.consequences && <Field label="ВОЗМОЖНОСТИ" value={item.consequences} />}
 
@@ -517,9 +526,9 @@ function RequestPageContent() {
           }}
         >
           <option value="">Все статусы</option>
-          <option value="shortlist">Шортлист</option>
+          <option value="shortlist">Приоритетные</option>
           <option value="watchlist">Наблюдение</option>
-          <option value="archive">Архив</option>
+          <option value="archive">Слабые</option>
         </select>
 
         <select
@@ -536,18 +545,19 @@ function RequestPageContent() {
           <option value="fresh">По свежести</option>
         </select>
 
-        {hasFilters && (
-          <button
-            onClick={clearFilters}
-            style={{
-              backgroundColor: 'transparent', border: '1px solid rgba(244,237,227,0.09)',
-              borderRadius: '10px', padding: '9px 14px', color: '#9B8A7A',
-              fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit',
-            }}
-          >
-            Сбросить
-          </button>
-        )}
+        <button
+          onClick={clearFilters}
+          disabled={!hasFilters}
+          style={{
+            backgroundColor: 'transparent', border: '1px solid rgba(244,237,227,0.09)',
+            borderRadius: '10px', padding: '9px 14px',
+            color: hasFilters ? '#9B8A7A' : '#3A342E',
+            fontSize: '13px', cursor: hasFilters ? 'pointer' : 'default', fontFamily: 'inherit',
+            transition: 'color 0.15s',
+          }}
+        >
+          Сбросить
+        </button>
       </div>
 
       {/* 2-column layout */}
