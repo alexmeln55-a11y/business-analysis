@@ -66,9 +66,34 @@ CREATE TABLE IF NOT EXISTS pain_registry (
   updated_at        TEXT NOT NULL DEFAULT (datetime('now'))
 );`
 
+export const SCHEMA_MEGATRENDS = `
+CREATE TABLE IF NOT EXISTS megatrends (
+  id                  TEXT PRIMARY KEY,
+  title               TEXT NOT NULL,
+  summary             TEXT NOT NULL,
+  why_growing         TEXT,
+  time_horizon        TEXT,
+  geography           TEXT,
+  vertical            TEXT NOT NULL DEFAULT '',
+  source_name         TEXT,
+  source_url          TEXT,
+  structural_strength REAL NOT NULL DEFAULT 5.0,
+  demand_signal       REAL NOT NULL DEFAULT 5.0,
+  longevity           REAL NOT NULL DEFAULT 5.0,
+  geographic_spread   REAL NOT NULL DEFAULT 5.0,
+  clarity_of_need     REAL NOT NULL DEFAULT 5.0,
+  hype_risk           REAL NOT NULL DEFAULT 3.0,
+  total_score         REAL NOT NULL DEFAULT 5.0,
+  status              TEXT NOT NULL DEFAULT 'new',
+  canonical_key       TEXT,
+  created_at          TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at          TEXT NOT NULL DEFAULT (datetime('now'))
+);`
+
 export const ALL_SCHEMAS = [
   SCHEMA_SOURCES,
   SCHEMA_RAW_SIGNALS,
   SCHEMA_CANDIDATE_PAINS,
   SCHEMA_PAIN_REGISTRY,
+  SCHEMA_MEGATRENDS,
 ]

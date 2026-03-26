@@ -13,7 +13,9 @@
     "pipeline:ingest": "tsx pipeline/scripts/ingest.ts",
     "pipeline:extract": "tsx pipeline/scripts/extract.ts",
     "pipeline:cluster": "tsx pipeline/scripts/cluster.ts",
-    "pipeline:run": "npm run pipeline:ingest && npm run pipeline:extract && npm run pipeline:cluster"
+    "pipeline:run": "npm run pipeline:ingest && npm run pipeline:extract && npm run pipeline:cluster",
+    "pipeline:seed-megatrends": "tsx pipeline/scripts/seed-megatrends.ts",
+    "pipeline:normalize-megatrends": "tsx pipeline/scripts/normalize-megatrends.ts"
   },
   "dependencies": {
     "better-sqlite3": "^9.0.0",

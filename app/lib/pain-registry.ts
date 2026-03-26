@@ -3,17 +3,17 @@
 export type PainStatus = 'new' | 'validated' | 'high_pain' | 'archived'
 export type FitLabel = 'high' | 'medium' | 'low'
 
-/** Normalised pain item for list display */
+/** Normalised item for list display (works for megatrends and pains) */
 export interface PainListItem {
   pain_id: string
   title: string
-  segment: string
+  segment: string           // megatrends: geography/audience
   short_description: string
   vertical: string
-  market_pain_score: number   // 0–10
-  evidence_count: number
-  source_types: string[]
-  last_seen_at: string        // ISO date string
+  market_pain_score: number // megatrends: total_score
+  evidence_count: number    // megatrends: source/signal count
+  source_types: string[]    // megatrends: source names
+  last_seen_at: string      // ISO date string
   status: PainStatus
   tags: string[]
 }
@@ -23,7 +23,7 @@ export interface PersonalPainMatchItem {
   pain_id: string
   title: string
   short_description: string
-  fit_score: number           // 0–10
+  fit_score: number         // 0–10
   fit_label: FitLabel
   fit_reason_short: string
   market_pain_score: number
@@ -32,16 +32,16 @@ export interface PersonalPainMatchItem {
 
 /** Full detail item for drawer */
 export interface PainDetailItem extends PainListItem {
-  full_description: string
-  target_who: string
-  context: string
-  workaround: string
-  consequences: string
+  full_description: string  // megatrends: why_growing
+  target_who: string        // megatrends: time_horizon + geography
+  context: string           // megatrends: market context
+  workaround: string        // megatrends: current solutions
+  consequences: string      // megatrends: opportunities for founders
   score_breakdown: {
-    frequency: number
-    intensity: number
-    willingness_to_pay: number
-    market_size: number
+    structural_strength: number
+    demand_signal: number
+    longevity: number
+    geographic_spread: number
   }
   evidence_summary: string
   personal_match?: {
@@ -50,208 +50,208 @@ export interface PainDetailItem extends PainListItem {
   }
 }
 
-// ── Mock data (pain_registry → PainDetailItem[]) ─────────────────────────────
+// ── Mock megatrend data ───────────────────────────────────────────────────────
 
 const MOCK_REGISTRY: PainDetailItem[] = [
   {
-    pain_id: 'p001',
-    title: 'Непрозрачные начисления ЖКХ',
-    segment: 'Жители МКД',
-    short_description: 'Жители не могут понять, за что именно они платят и почему сумма меняется каждый месяц.',
-    vertical: 'ЖКХ',
-    market_pain_score: 8.4,
-    evidence_count: 214,
-    source_types: ['telegram', 'forum'],
+    pain_id: 'mt001',
+    title: 'Импортозамещение корпоративного ПО',
+    segment: 'Россия',
+    short_description: 'Принудительная и добровольная миграция с зарубежного ПО на отечественный стек в госсекторе и корпоратах.',
+    vertical: 'IT',
+    market_pain_score: 9.1,
+    evidence_count: 12,
+    source_types: ['минцифры', 'cnews'],
     last_seen_at: '2026-03-20',
     status: 'high_pain',
-    tags: ['прозрачность', 'коммуналка', 'ЖКХ', 'УК'],
-    full_description: 'Миллионы жителей многоквартирных домов ежемесячно получают квитанции, в которых невозможно проверить правильность начислений. УК и РСО выставляют суммы без детализации, формулы расчёта закрыты, перерасчёты при несогласии — длительная бюрократическая процедура.',
-    target_who: 'Собственники квартир в МКД, арендаторы, председатели ТСЖ',
-    context: 'В России ~75% жилья — МКД. Управляющие компании обязаны раскрывать данные, но на практике информация труднодоступна или непонятна рядовому жителю.',
-    workaround: 'Звонки в УК, самостоятельный расчёт по нормативам, жалобы в ГЖИ. Большинство просто платит.',
-    consequences: 'Переплата, потеря доверия к УК, конфликты с соседями при разделе счётов, юридические споры.',
-    score_breakdown: { frequency: 9, intensity: 7, willingness_to_pay: 6, market_size: 9 },
-    evidence_summary: '214 упоминаний в тематических Telegram-каналах и форумах за последние 30 дней. Рост +18% к прошлому месяцу.',
+    tags: ['импортозамещение', 'B2G', 'B2B', 'SaaS', 'госсектор'],
+    full_description: 'Санкции 2022–2024 отрезали РФ от Oracle, SAP, Microsoft 365, Adobe. Госсектор обязан перейти до 2025. Корпораты следуют за регулятором — возникает огромный рынок для отечественных вендоров и интеграторов.',
+    target_who: '2–4 года · Россия',
+    context: 'Обязательный переход госсектора создаёт гарантированный спрос. Корпораты ищут решения с нейтральным риском. Объём рынка — 400+ млрд руб. ежегодно.',
+    workaround: 'Частичная замена отдельных модулей, самописные решения, open-source (LibreOffice, PostgreSQL), 1С-экосистема.',
+    consequences: 'Огромный B2G и B2B рынок для вертикальных SaaS, интеграторов, консультантов по миграции и обучению.',
+    score_breakdown: { structural_strength: 9, demand_signal: 9, longevity: 8, geographic_spread: 3 },
+    evidence_summary: 'Источники: Минцифры, CNews, официальные постановления. Обязательная замена до 2025 для ФОИВ.',
   },
   {
-    pain_id: 'p002',
-    title: 'Бухгалтерия для малого бизнеса и ИП',
-    segment: 'ИП и малый бизнес',
-    short_description: 'Предприниматели тратят 4–10 часов в месяц на бумажную отчётность или платят бухгалтеру за то, что можно автоматизировать.',
-    vertical: 'Финансы и учёт',
-    market_pain_score: 7.9,
-    evidence_count: 187,
-    source_types: ['telegram', 'vk', 'otzovik'],
+    pain_id: 'mt002',
+    title: 'ИИ-автоматизация рутины малого бизнеса',
+    segment: 'Россия + СНГ',
+    short_description: 'Малый и средний бизнес начинает использовать ИИ-инструменты для автоматизации переписки, документов, аналитики.',
+    vertical: 'IT',
+    market_pain_score: 8.1,
+    evidence_count: 8,
+    source_types: ['skolkovo', 'rbc'],
     last_seen_at: '2026-03-22',
     status: 'validated',
-    tags: ['бухгалтерия', 'ИП', 'отчётность', 'налоги', 'автоматизация'],
-    full_description: 'Большинство ИП на УСН и патенте не могут позволить штатного бухгалтера, но регуляторная нагрузка растёт: ЕФС-1, уведомления по ЕНП, декларации. Существующие решения либо дорогие (1С), либо неудобные (банковские сервисы не покрывают всё).',
-    target_who: 'ИП на УСН 6%, УСН 15%, патенте. Малый бизнес до 15 человек.',
-    context: 'В России 3,7 млн ИП. ФНС активно развивает электронные сервисы, но интерфейс сложный для неспециалиста.',
-    workaround: 'Аутсорсинг (2–5 тыс/мес), самостоятельное ведение через Excel, банковские сервисы с ограниченным функционалом.',
-    consequences: 'Штрафы за ошибки, стресс в периоды отчётности, нерациональные затраты на бухгалтера.',
-    score_breakdown: { frequency: 8, intensity: 7, willingness_to_pay: 8, market_size: 8 },
-    evidence_summary: '187 упоминаний из чатов для предпринимателей и отзывных платформ. Пик активности — конец квартала.',
+    tags: ['ИИ', 'автоматизация', 'МСБ', 'LLM', 'продуктивность'],
+    full_description: 'Стоимость LLM-API упала до минимума. ChatGPT и аналоги доступны. МСБ испытывает дефицит кадров и не может позволить штатных аналитиков — ИИ-инструменты становятся первым доступным способом масштабироваться без найма.',
+    target_who: '2–5 лет · Россия + СНГ',
+    context: 'В России 5,7 млн МСБ-субъектов. Большинство не имеет IT-отдела. Инструменты автоматизации на базе LLM стоят $10–50/мес — доступно.',
+    workaround: 'Excel-макросы, фриланс на разовые задачи, дорогой штатный персонал, шаблонные CRM.',
+    consequences: 'Рынок для агентных ИИ-инструментов, продуктов-ассистентов и отраслевых LLM-приложений для МСБ.',
+    score_breakdown: { structural_strength: 8, demand_signal: 8, longevity: 9, geographic_spread: 7 },
+    evidence_summary: 'Источники: Skolkovo AI-отчёт 2024, RBC Тренды. Глобальное подтверждение через Gartner Hype Cycle.',
   },
   {
-    pain_id: 'p003',
-    title: 'Подбор персонала в малых городах',
-    segment: 'Региональный малый бизнес',
-    short_description: 'В городах до 150к сложно найти квалифицированного сотрудника: HH и Avito не работают, сарафан непредсказуем.',
-    vertical: 'HR и найм',
-    market_pain_score: 7.2,
-    evidence_count: 143,
-    source_types: ['telegram', 'vk'],
-    last_seen_at: '2026-03-18',
-    status: 'validated',
-    tags: ['HR', 'найм', 'регионы', 'подбор', 'персонал'],
-    full_description: 'Региональный рынок труда не охвачен федеральными платформами. Работодатели тратят недели на поиск, опираясь на личные связи. Кандидаты не видят локальные вакансии, потому что не пользуются hh.ru.',
-    target_who: 'Владельцы кафе, автосервисов, магазинов, небольших производств в малых городах.',
-    context: 'В России 1100+ городов с населением до 100 тыс. Это 25 млн жителей и огромный объём микробизнеса.',
-    workaround: 'Объявления ВКонтакте, Avito, городские Telegram-чаты, сарафан.',
-    consequences: 'Долгое закрытие вакансий, потери выручки, найм неподходящих людей.',
-    score_breakdown: { frequency: 7, intensity: 7, willingness_to_pay: 6, market_size: 7 },
-    evidence_summary: '143 упоминания в локальных Telegram-каналах и группах ВКонтакте.',
-  },
-  {
-    pain_id: 'p004',
-    title: 'Согласование документов с госорганами',
-    segment: 'МСП с лицензиями и разрешениями',
-    short_description: 'Получение разрешений и лицензий занимает от 2 недель до нескольких месяцев при минимальной ценности каждого шага.',
-    vertical: 'Регуляторика',
-    market_pain_score: 8.1,
-    evidence_count: 198,
-    source_types: ['telegram', 'forum', 'vk'],
-    last_seen_at: '2026-03-21',
-    status: 'high_pain',
-    tags: ['госорганы', 'лицензии', 'согласования', 'бюрократия', 'МСП'],
-    full_description: 'Любой бизнес с физическим присутствием в РФ сталкивается с согласованиями: пожарная, санэпидемстанция, алкогольная лицензия, разрешение на строительство. Каждый орган — своя очередь, своя форма, своя логика.',
-    target_who: 'Кафе, рестораны, медицинские клиники, строительные компании, торговля алкоголем.',
-    context: 'Госуслуги частично оцифровали процессы, но практика сильно расходится с теорией. Региональные отличия колоссальные.',
-    workaround: 'Специализированные юристы и посредники, «помощники» в комплаенсе.',
-    consequences: 'Задержка запуска бизнеса, штрафы, риск закрытия.',
-    score_breakdown: { frequency: 8, intensity: 9, willingness_to_pay: 8, market_size: 7 },
-    evidence_summary: '198 упоминаний, высокая концентрация в предпринимательских каналах.',
-  },
-  {
-    pain_id: 'p005',
-    title: 'Поиск надёжного поставщика для малого ритейла',
-    segment: 'Малый ритейл и e-com',
-    short_description: 'Владельцы небольших магазинов не знают, как найти поставщика с нормальными ценами, без минимальных заказов на 500к.',
-    vertical: 'Торговля и снабжение',
-    market_pain_score: 6.8,
-    evidence_count: 112,
-    source_types: ['telegram', 'otzovik'],
-    last_seen_at: '2026-03-15',
-    status: 'validated',
-    tags: ['поставщики', 'ритейл', 'закупки', 'малый бизнес'],
-    full_description: 'Оптовые рынки и крупные дистрибьюторы работают с бизнесами от определённого объёма. Малые магазины покупают дорого через посредников или рискуют на нишевых площадках без гарантий.',
-    target_who: 'Владельцы несетевых магазинов, интернет-магазинов с оборотом до 5 млн в месяц.',
-    context: 'В России ~350 тыс. МСП в ритейле. Wildberries и Ozon ужесточили условия, часть продавцов ищет собственные каналы.',
-    workaround: 'Alibaba, личные связи, оптовые рынки типа Садовода, закупки через перекупов.',
-    consequences: 'Высокая себестоимость товара, низкая маржа, нестабильность поставок.',
-    score_breakdown: { frequency: 7, intensity: 6, willingness_to_pay: 7, market_size: 7 },
-    evidence_summary: '112 упоминаний в торговых чатах и форумах.',
-  },
-  {
-    pain_id: 'p006',
-    title: 'Запись к врачу в регионах',
-    segment: 'Пациенты государственных поликлиник',
-    short_description: 'Записаться к узкому специалисту по ОМС — очередь на 2–6 недель, непредсказуемое расписание.',
-    vertical: 'Здравоохранение',
-    market_pain_score: 8.7,
-    evidence_count: 276,
-    source_types: ['telegram', 'vk', 'forum'],
+    pain_id: 'mt003',
+    title: 'Автоматизация налоговой отчётности ИП и МСБ',
+    segment: 'Россия',
+    short_description: 'Интеграция банков, ФНС и бухгалтерских систем позволяет полностью автоматизировать отчётность для малого бизнеса.',
+    vertical: 'Финансы',
+    market_pain_score: 9.3,
+    evidence_count: 15,
+    source_types: ['фнс', 'тинькофф'],
     last_seen_at: '2026-03-23',
     status: 'high_pain',
-    tags: ['медицина', 'запись', 'поликлиника', 'ОМС', 'регионы'],
-    full_description: 'Очереди к неврологу, кардиологу, эндокринологу в государственных поликлиниках — хронический сбой системы. Записи через Госуслуги работают неровно, через сайт поликлиники — часто недоступны.',
-    target_who: 'Жители городов 50–500 тыс., пенсионеры, люди с хроническими заболеваниями.',
-    context: 'Нехватка врачей в регионах официально признана. Цифровые сервисы записи внедрены неравномерно.',
-    workaround: 'Приходить с утра живой очередью, звонить с 8:00, платная медицина.',
-    consequences: 'Запоздалое лечение, ухудшение состояния, переход в платные клиники.',
-    score_breakdown: { frequency: 9, intensity: 9, willingness_to_pay: 6, market_size: 9 },
-    evidence_summary: '276 упоминаний — один из самых активных болевых кластеров в выборке.',
+    tags: ['бухгалтерия', 'ИП', 'ЕНП', 'ФНС', 'автоматизация'],
+    full_description: 'ФНС активно развивает API и ЕНП. Банки строят бухгалтерские сервисы. Клиентский запрос огромен — 3,7 млн ИП не хотят платить бухгалтеру 2–5 тыс./мес за то, что можно автоматизировать.',
+    target_who: '2–4 года · Россия',
+    context: '3,7 млн ИП в России. ФНС API позволяет автоматически подавать уведомления, декларации. Банки уже интегрируют первичный учёт.',
+    workaround: 'Аутсорсинг бухгалтера, банковские сервисы с ограниченным функционалом, 1С Бухгалтерия.',
+    consequences: 'Возможность создать end-to-end автоматизированный бухгалтерский продукт для 3,7 млн ИП.',
+    score_breakdown: { structural_strength: 9, demand_signal: 9, longevity: 7, geographic_spread: 3 },
+    evidence_summary: 'Источники: ФНС API-документация, Тинькофф Бизнес, Сбер Бизнес. Прямой регуляторный драйвер.',
   },
   {
-    pain_id: 'p007',
-    title: 'Управление запасами в небольшой рознице',
-    segment: 'Несетевой ритейл',
-    short_description: 'Владельцы точек не знают, что сейчас на складе, и постоянно либо затаривают, либо теряют продажи.',
-    vertical: 'Торговля и снабжение',
-    market_pain_score: 6.5,
-    evidence_count: 89,
-    source_types: ['telegram', 'vk'],
-    last_seen_at: '2026-03-14',
-    status: 'new',
-    tags: ['складской учёт', 'остатки', 'ритейл', 'автоматизация'],
-    full_description: 'Большинство несетевых магазинов ведут учёт в тетради или Excel. 1С — дорого и сложно. МойСклад и аналоги есть, но не все доходят до внедрения без сопровождения.',
-    target_who: 'Владельцы продуктовых магазинов, хозтоваров, автозапчастей, стройматериалов.',
-    context: 'В России ~300+ тыс. несетевых точек. Большинство без автоматизации складского учёта.',
-    workaround: 'Excel, тетрадь, визуальный осмотр, 1С для тех, кто смог настроить.',
-    consequences: 'Кассовые разрывы из-за неликвидов, потери выручки на отсутствующем товаре.',
-    score_breakdown: { frequency: 6, intensity: 6, willingness_to_pay: 7, market_size: 7 },
-    evidence_summary: '89 упоминаний в чатах для владельцев магазинов.',
-  },
-  {
-    pain_id: 'p008',
-    title: 'Обучение персонала в малом общепите',
-    segment: 'Кафе и рестораны до 50 мест',
-    short_description: 'Каждый новый сотрудник учится заново — нет стандартизированного онбординга.',
-    vertical: 'Образование и HR',
-    market_pain_score: 5.9,
-    evidence_count: 67,
-    source_types: ['telegram'],
-    last_seen_at: '2026-03-10',
-    status: 'new',
-    tags: ['обучение', 'персонал', 'общепит', 'онбординг', 'стандарты'],
-    full_description: 'Текучка в общепите — 80–120% в год. Каждое обучение нового кассира/официанта занимает 1–2 недели. Специализированных решений для малого общепита нет.',
-    target_who: 'Владельцы кофеен, небольших кафе, пиццерий, уличной еды.',
-    context: 'Общепит в России — 170+ тыс. заведений. Малые форматы составляют большую часть.',
-    workaround: 'Устный инструктаж, Google Docs с регламентами, старший сотрудник обучает.',
-    consequences: 'Ошибки нового персонала, жалобы гостей, повторяющийся стресс у владельца.',
-    score_breakdown: { frequency: 6, intensity: 5, willingness_to_pay: 5, market_size: 6 },
-    evidence_summary: '67 упоминаний из каналов для владельцев общепита.',
-  },
-  {
-    pain_id: 'p009',
-    title: 'Логистика последней мили в малых городах',
-    segment: 'E-com покупатели вне крупных городов',
-    short_description: 'Доставка из интернет-магазина занимает 7–14 дней вместо 1–2, пункты выдачи переполнены.',
-    vertical: 'Логистика',
-    market_pain_score: 7.5,
-    evidence_count: 156,
-    source_types: ['telegram', 'vk', 'otzovik'],
+    pain_id: 'mt004',
+    title: 'Кибербезопасность для малого и среднего бизнеса',
+    segment: 'Россия',
+    short_description: 'Рост числа атак на МСБ создаёт спрос на доступные решения по защите данных, удалённого доступа и антифрода.',
+    vertical: 'IT',
+    market_pain_score: 8.2,
+    evidence_count: 9,
+    source_types: ['positive_tech', 'bi_zone'],
     last_seen_at: '2026-03-19',
     status: 'validated',
-    tags: ['доставка', 'логистика', 'е-ком', 'регионы', 'ПВЗ'],
-    full_description: 'Крупные маркетплейсы улучшили логистику в миллионниках, но в городах до 100 тыс. ситуация остаётся плохой. Курьерская доставка до двери — редкость.',
-    target_who: 'Онлайн-покупатели в городах с населением 30–150 тыс.',
-    context: 'E-com в России растёт, но инфраструктура последней мили не успевает. В малых городах 80% покупок всё ещё офлайн.',
-    workaround: 'Выбирать только то, что есть на Ozon с быстрой доставкой, ждать, покупать офлайн.',
-    consequences: 'Отказ от онлайн-шопинга, возвраты, негативные отзывы на маркетплейсах.',
-    score_breakdown: { frequency: 8, intensity: 7, willingness_to_pay: 6, market_size: 8 },
-    evidence_summary: '156 упоминаний в потребительских каналах и Ozon/WB отзывах.',
+    tags: ['кибербезопасность', 'МСБ', '152-ФЗ', 'антифрод', 'утечки'],
+    full_description: 'Атаки на МСБ выросли на 40% в 2023–2024. Работа с персональными данными требует соответствия 152-ФЗ. Страховые компании начинают требовать подтверждения кибергигиены для выдачи полисов.',
+    target_who: '1–3 года · Россия',
+    context: 'Малый бизнес — основная мишень для ransomware и фишинга: слабая защита, высокая готовность платить выкуп. Штрафы по 152-ФЗ ужесточились.',
+    workaround: 'Антивирусы категории consumer, отсутствие политик безопасности, надежда на "нас не атакуют".',
+    consequences: 'Рынок для доступных B2B security-продуктов: MDR, защита электронной почты, управление паролями, compliance-аудит.',
+    score_breakdown: { structural_strength: 8, demand_signal: 7, longevity: 8, geographic_spread: 5 },
+    evidence_summary: 'Источники: Positive Technologies, BI.ZONE, Kaspersky SMB Report 2024.',
   },
   {
-    pain_id: 'p010',
-    title: 'Контроль подрядчиков в ремонте',
-    segment: 'Собственники жилья и коммерческой недвижимости',
-    short_description: 'Нанял бригаду — и не знаешь, придут ли завтра и сделают ли как обещали.',
-    vertical: 'Строительство и ремонт',
-    market_pain_score: 7.8,
-    evidence_count: 168,
-    source_types: ['telegram', 'vk', 'forum'],
+    pain_id: 'mt005',
+    title: 'Маркетплейс-зависимость и диверсификация каналов МСБ',
+    segment: 'Россия',
+    short_description: 'Wildberries и Ozon монополизируют онлайн-ритейл. Продавцы ищут независимые каналы и инструменты снижения зависимости.',
+    vertical: 'Ритейл',
+    market_pain_score: 7.9,
+    evidence_count: 11,
+    source_types: ['data_insight', 'vc_ru'],
+    last_seen_at: '2026-03-21',
+    status: 'validated',
+    tags: ['маркетплейсы', 'D2C', 'WB', 'Ozon', 'диверсификация'],
+    full_description: 'WB поднял комиссии до 25–40%. Штрафная политика усилилась. Продавцы теряют маржу и ищут D2C-каналы, собственные сайты и B2B-выходы. Зависимость от одного канала стала экзистенциальным риском.',
+    target_who: '3–5 лет · Россия',
+    context: 'WB и Ozon контролируют ~70% онлайн-ритейла в РФ. 600+ тыс. активных продавцов. Комиссии растут ежегодно.',
+    workaround: 'Собственные сайты на Tilda/Shopify, социальные сети, офлайн-точки, B2B-каналы через посредников.',
+    consequences: 'Возможности для D2C-платформ, инструментов мультиканального управления, аналитики маркетплейсов.',
+    score_breakdown: { structural_strength: 7, demand_signal: 8, longevity: 7, geographic_spread: 3 },
+    evidence_summary: 'Источники: Data Insight E-commerce 2024, VC.ru, официальные отчёты WB.',
+  },
+  {
+    pain_id: 'mt006',
+    title: 'Цифровизация региональной логистики последней мили',
+    segment: 'Россия (регионы)',
+    short_description: 'Рост e-com в регионах требует новой инфраструктуры: ПВЗ, курьерские сети, маршрутизация в малых городах.',
+    vertical: 'Логистика',
+    market_pain_score: 7.5,
+    evidence_count: 8,
+    source_types: ['сдэк', 'data_insight'],
+    last_seen_at: '2026-03-18',
+    status: 'validated',
+    tags: ['логистика', 'e-com', 'регионы', 'ПВЗ', 'последняя миля'],
+    full_description: 'E-com растёт в городах с населением 50–300 тыс. Маркетплейсы не успевают строить сети. Региональные логисты испытывают острый дефицит цифровых инструментов — маршрутизации, трекинга, управления ПВЗ.',
+    target_who: '3–5 лет · Россия (регионы)',
+    context: '1100+ городов с населением до 100 тыс. — e-com только входит. Текущая инфраструктура не справляется с ростом.',
+    workaround: 'Почта России, региональные транспортные компании, разрозненные курьерские сервисы.',
+    consequences: 'Рынок для регионального логистического SaaS, WMS-систем для малых складов, маршрутизаторов последней мили.',
+    score_breakdown: { structural_strength: 7, demand_signal: 7, longevity: 7, geographic_spread: 4 },
+    evidence_summary: 'Источники: СДЭК Аналитика 2024, Data Insight, НРА.',
+  },
+  {
+    pain_id: 'mt007',
+    title: 'Онлайн-переквалификация и корпоративное обучение',
+    short_description: 'Дефицит IT-кадров и рост требований к квалификации вынуждают компании и физлиц инвестировать в онлайн-обучение.',
+    segment: 'Россия + СНГ',
+    vertical: 'Образование',
+    market_pain_score: 7.3,
+    evidence_count: 10,
+    source_types: ['hh', 'skillbox'],
     last_seen_at: '2026-03-17',
-    status: 'high_pain',
-    tags: ['ремонт', 'подрядчики', 'контроль', 'бригада', 'стройка'],
-    full_description: 'Рынок ремонтных услуг в России — один из самых непрозрачных. Частные бригады работают без договора, предоплата теряется, качество непредсказуемо. Агрегаторы типа YouDo есть, но не решают проблему качества.',
-    target_who: 'Собственники квартир на ремонте, владельцы небольших офисов и магазинов.',
-    context: 'Рынок ремонта в РФ — ~2 трлн руб./год. Большая часть — теневые расчёты с бригадами.',
-    workaround: 'Советы знакомых, YouDo, агрегаторы, личный контроль каждый день.',
-    consequences: 'Срыв сроков, перерасход бюджета на 30–60%, скрытые переделки.',
-    score_breakdown: { frequency: 7, intensity: 8, willingness_to_pay: 8, market_size: 8 },
-    evidence_summary: '168 упоминаний с высоким эмоциональным зарядом в потребительских чатах.',
+    status: 'validated',
+    tags: ['EdTech', 'переквалификация', 'IT-образование', 'корп-обучение', 'ДПО'],
+    full_description: 'Рынок труда в IT перегрет: дефицит 500+ тыс. специалистов. Льготы на ДПО. Корпораты переходят на внутренние академии. Физлица ищут быстрые пути в новые профессии.',
+    target_who: '3–7 лет · Россия + СНГ',
+    context: 'Дефицит IT-специалистов официально признан критическим. Программы субсидированного обучения от государства. Корпоративный EdTech — новая строка в бюджетах.',
+    workaround: 'Традиционное университетское образование, YouTube-курсы, индивидуальные менторы.',
+    consequences: 'Возможности для вертикальных образовательных платформ, B2B-обучающих продуктов, AI-тьюторов.',
+    score_breakdown: { structural_strength: 7, demand_signal: 7, longevity: 8, geographic_spread: 6 },
+    evidence_summary: 'Источники: HeadHunter Рынок труда 2024, Skillbox Отчёт, МинПросвещения.',
+  },
+  {
+    pain_id: 'mt008',
+    title: 'Вертикальный SaaS для региональных отраслей',
+    short_description: 'Нишевые SaaS-решения для конкретных отраслей вытесняют универсальные платформы после ухода западных вендоров.',
+    segment: 'Россия',
+    vertical: 'IT',
+    market_pain_score: 7.0,
+    evidence_count: 7,
+    source_types: ['vc_ru', 'раэк'],
+    last_seen_at: '2026-03-15',
+    status: 'new',
+    tags: ['SaaS', 'вертикальный рынок', 'B2B', 'регионы', 'импортозамещение'],
+    full_description: 'Уход западного SaaS открыл ниши. Региональные компании не хотят адаптироваться под общие инструменты. Спрос на отраслевую специфику: строительство, медицина, агро, юридические услуги — огромен.',
+    target_who: '3–6 лет · Россия',
+    context: 'До 2022 западный SaaS занимал 60–70% корпоративного рынка. После ухода возникли сотни незакрытых ниш.',
+    workaround: 'Самописные системы на 1С, Excel-таблицы, дорогой аутсорс разработки.',
+    consequences: 'Стратегический рынок для нишевых SaaS-стартапов с отраслевой экспертизой.',
+    score_breakdown: { structural_strength: 7, demand_signal: 6, longevity: 8, geographic_spread: 3 },
+    evidence_summary: 'Источники: VC.ru, РАЭК Реестр российского ПО.',
+  },
+  {
+    pain_id: 'mt009',
+    title: 'Превентивная медицина и персонализированное здоровье',
+    short_description: 'Спрос на чекапы, раннее выявление рисков и персонализированные программы здоровья растёт среди городского среднего класса.',
+    segment: 'Россия (крупные города)',
+    vertical: 'Здравоохранение',
+    market_pain_score: 7.1,
+    evidence_count: 6,
+    source_types: ['mckinsey_health', 'rbc'],
+    last_seen_at: '2026-03-14',
+    status: 'new',
+    tags: ['превентивная медицина', 'wellness', 'чекапы', 'персонализация', 'healthtech'],
+    full_description: 'COVID изменил отношение к здоровью. Рост доходов в крупных городах. Очереди в государственных поликлиниках стимулируют переход в частную медицину и профилактику.',
+    target_who: '4–7 лет · Россия (города 500k+)',
+    context: 'Рынок частной медицины в РФ — 1,4 трлн руб. Аудитория платежеспособных пациентов, ориентированных на качество жизни.',
+    workaround: 'Ежегодные медосмотры по ОМС, корпоративные ДМС-программы, самостоятельный подбор специалистов.',
+    consequences: 'Рынок для digital-health приложений, сервисов мониторинга, персональных медицинских ассистентов.',
+    score_breakdown: { structural_strength: 7, demand_signal: 6, longevity: 9, geographic_spread: 5 },
+    evidence_summary: 'Источники: McKinsey Health Report 2024, РБК Здравоохранение, VADEMECUM.',
+  },
+  {
+    pain_id: 'mt010',
+    title: 'HR-автоматизация и онбординг для малого бизнеса',
+    short_description: 'Текучка кадров и дефицит HR-ресурсов в МСБ создают спрос на автоматизированные системы найма и онбординга.',
+    segment: 'Россия',
+    vertical: 'HR',
+    market_pain_score: 7.4,
+    evidence_count: 8,
+    source_types: ['hh', 'superjob'],
+    last_seen_at: '2026-03-16',
+    status: 'validated',
+    tags: ['HR', 'онбординг', 'текучка', 'найм', 'автоматизация'],
+    full_description: 'Текучка в МСБ — 60–120% в год. HR-менеджеров нет. Платформы типа HeadHunter дорогие и сложные для бизнеса без рекрутера. Онбординг каждого нового сотрудника занимает 2–3 недели ручной работы руководителя.',
+    target_who: '2–4 года · Россия',
+    context: '5,7 млн МСБ-субъектов в РФ. Большинство нанимает без систем — через мессенджеры и сарафан.',
+    workaround: 'Авито Работа, ВКонтакте-группы, ручной онбординг через Google Docs, устный инструктаж.',
+    consequences: 'Рынок для affordable HR-автоматизации: ATS, онбординг-конструкторы, чат-боты для рекрутинга.',
+    score_breakdown: { structural_strength: 7, demand_signal: 7, longevity: 7, geographic_spread: 3 },
+    evidence_summary: 'Источники: HeadHunter Рынок труда 2024, SuperJob SMB Research.',
   },
 ]
 
@@ -259,60 +259,59 @@ const MOCK_REGISTRY: PainDetailItem[] = [
 
 export const MOCK_PERSONAL_MATCHES: PersonalPainMatchItem[] = [
   {
-    pain_id: 'p002',
-    title: 'Бухгалтерия для малого бизнеса и ИП',
-    short_description: 'Предприниматели тратят 4–10 часов в месяц на бумажную отчётность.',
+    pain_id: 'mt003',
+    title: 'Автоматизация налоговой отчётности ИП и МСБ',
+    short_description: 'Интеграция банков и ФНС для автоматической отчётности.',
     fit_score: 8.8,
     fit_label: 'high',
-    fit_reason_short: 'Сильные технические компетенции + опыт работы с ИП',
+    fit_reason_short: 'Финтех-компетенции + опыт работы с ИП',
+    market_pain_score: 9.3,
+    updated_at: '2026-03-22',
+  },
+  {
+    pain_id: 'mt002',
+    title: 'ИИ-автоматизация рутины малого бизнеса',
+    short_description: 'ИИ-инструменты для автоматизации переписки и документов.',
+    fit_score: 8.2,
+    fit_label: 'high',
+    fit_reason_short: 'Сильная техническая база + понимание МСБ-болей',
+    market_pain_score: 8.1,
+    updated_at: '2026-03-22',
+  },
+  {
+    pain_id: 'mt008',
+    title: 'Вертикальный SaaS для региональных отраслей',
+    short_description: 'Нишевые SaaS-решения для региональных B2B-рынков.',
+    fit_score: 7.1,
+    fit_label: 'high',
+    fit_reason_short: 'Опыт продуктовой разработки + региональный рынок',
+    market_pain_score: 7.0,
+    updated_at: '2026-03-22',
+  },
+  {
+    pain_id: 'mt005',
+    title: 'Маркетплейс-зависимость и диверсификация каналов МСБ',
+    short_description: 'Инструменты для выхода продавцов из маркетплейс-зависимости.',
+    fit_score: 6.3,
+    fit_label: 'medium',
+    fit_reason_short: 'Частично совпадает с e-com опытом',
     market_pain_score: 7.9,
     updated_at: '2026-03-22',
   },
   {
-    pain_id: 'p007',
-    title: 'Управление запасами в небольшой рознице',
-    short_description: 'Постоянно либо затаривают ненужное, либо теряют продажи.',
-    fit_score: 7.4,
-    fit_label: 'high',
-    fit_reason_short: 'Опыт в ритейле + навыки автоматизации процессов',
-    market_pain_score: 6.5,
-    updated_at: '2026-03-22',
-  },
-  {
-    pain_id: 'p005',
-    title: 'Поиск надёжного поставщика для малого ритейла',
-    short_description: 'Не знают, как найти поставщика с нормальными ценами без рисков.',
-    fit_score: 6.2,
+    pain_id: 'mt010',
+    title: 'HR-автоматизация и онбординг для малого бизнеса',
+    short_description: 'Автоматизация найма и онбординга без HR-отдела.',
+    fit_score: 5.4,
     fit_label: 'medium',
-    fit_reason_short: 'Частично совпадает с отраслевым опытом',
-    market_pain_score: 6.8,
-    updated_at: '2026-03-22',
-  },
-  {
-    pain_id: 'p008',
-    title: 'Обучение персонала в малом общепите',
-    short_description: 'Каждый новый сотрудник учится заново без стандартов.',
-    fit_score: 5.5,
-    fit_label: 'medium',
-    fit_reason_short: 'Навыки в EdTech, но слабый опыт в общепите',
-    market_pain_score: 5.9,
-    updated_at: '2026-03-22',
-  },
-  {
-    pain_id: 'p001',
-    title: 'Непрозрачные начисления ЖКХ',
-    short_description: 'Жители не могут понять, за что именно они платят.',
-    fit_score: 3.8,
-    fit_label: 'low',
-    fit_reason_short: 'Высокая боль рынка, но слабая связь с профилем',
-    market_pain_score: 8.4,
+    fit_reason_short: 'Опыт в автоматизации, но слабая HR-специализация',
+    market_pain_score: 7.4,
     updated_at: '2026-03-22',
   },
 ]
 
 // ── Adapter interface ─────────────────────────────────────────────────────────
-// Swap implementation here when connecting real pain_registry / API.
-// UI never reads raw backend fields — always goes through this contract.
+// Swap implementation below when connecting real megatrends DB.
 
 export interface PainRegistryAdapter {
   listPains(): Promise<PainListItem[]>
@@ -338,57 +337,56 @@ function toPainListItem(raw: PainDetailItem): PainListItem {
   }
 }
 
-// ── Real DB adapter (enable when pain_registry has data) ─────────────────────
-// To switch: change `export const painAdapter` below to use `createDbAdapter()`
+// ── Real DB adapter (megatrends table) ────────────────────────────────────────
+// Switch `painAdapter` below to `createDbAdapter()` once DB has data.
 
-interface PainRegistryRow {
-  pain_id: string; topic_id: string; vertical: string; segment: string
-  title: string; short_description: string; full_description: string | null
-  target_who: string | null; context: string | null; workaround: string | null
-  consequences: string | null; evidence_count: number; market_pain_score: number
-  source_types: string; last_seen_at: string; status: string; tags: string
-  score_breakdown: string; evidence_summary: string | null
+interface MegatrendRow {
+  id: string; title: string; summary: string
+  why_growing: string | null; time_horizon: string | null; geography: string | null
+  vertical: string; source_name: string | null; source_url: string | null
+  structural_strength: number; demand_signal: number; longevity: number
+  geographic_spread: number; clarity_of_need: number; hype_risk: number
+  total_score: number; status: string
   created_at: string; updated_at: string
 }
 
-function rowToListItem(row: PainRegistryRow): PainListItem {
+function megatrendRowToListItem(row: MegatrendRow): PainListItem {
   return {
-    pain_id: row.pain_id,
+    pain_id: row.id,
     title: row.title,
-    segment: row.segment,
-    short_description: row.short_description,
+    segment: row.geography ?? '',
+    short_description: row.summary,
     vertical: row.vertical,
-    market_pain_score: row.market_pain_score,
-    evidence_count: row.evidence_count,
-    source_types: JSON.parse(row.source_types) as string[],
-    last_seen_at: row.last_seen_at.slice(0, 10),
+    market_pain_score: row.total_score,
+    evidence_count: row.source_name ? row.source_name.split(',').length : 1,
+    source_types: row.source_name ? row.source_name.split(',').map(s => s.trim().toLowerCase().replace(/\s+/g, '_')) : [],
+    last_seen_at: row.updated_at.slice(0, 10),
     status: row.status as PainStatus,
-    tags: JSON.parse(row.tags) as string[],
+    tags: [row.vertical, row.geography ?? '', row.time_horizon ?? ''].filter(Boolean),
   }
 }
 
-function rowToDetailItem(row: PainRegistryRow): PainDetailItem {
-  const scoreBreakdown = JSON.parse(row.score_breakdown) as Record<string, number>
+function megatrendRowToDetailItem(row: MegatrendRow): PainDetailItem {
   return {
-    ...rowToListItem(row),
-    full_description: row.full_description ?? row.short_description,
-    target_who: row.target_who ?? row.segment,
-    context: row.context ?? '',
-    workaround: row.workaround ?? '',
-    consequences: row.consequences ?? '',
+    ...megatrendRowToListItem(row),
+    full_description: row.why_growing ?? row.summary,
+    target_who: [row.time_horizon, row.geography].filter(Boolean).join(' · '),
+    context: `Вертикаль: ${row.vertical}. ${row.summary}`,
+    workaround: '',
+    consequences: '',
     score_breakdown: {
-      frequency: scoreBreakdown.frequency ?? 5,
-      intensity: scoreBreakdown.intensity ?? 5,
-      willingness_to_pay: scoreBreakdown.willingness_to_pay ?? 5,
-      market_size: scoreBreakdown.market_size ?? 5,
+      structural_strength: row.structural_strength,
+      demand_signal: row.demand_signal,
+      longevity: row.longevity,
+      geographic_spread: row.geographic_spread,
     },
-    evidence_summary: row.evidence_summary ?? `${row.evidence_count} сигналов`,
+    evidence_summary: row.source_name
+      ? `Источники: ${row.source_name}.`
+      : 'Данные из открытых источников.',
   }
 }
 
 function createDbAdapter(): PainRegistryAdapter {
-  // Lazy require to avoid bundling better-sqlite3 on client side.
-  // Only call from server-side code (API routes, server components).
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-explicit-any
   const Database = require('better-sqlite3') as any
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -400,13 +398,13 @@ function createDbAdapter(): PainRegistryAdapter {
   return {
     async listPains() {
       const rows = db.prepare(`
-        SELECT * FROM pain_registry ORDER BY market_pain_score DESC
-      `).all() as PainRegistryRow[]
-      return rows.map(rowToListItem)
+        SELECT * FROM megatrends WHERE status != 'archived' ORDER BY total_score DESC
+      `).all() as MegatrendRow[]
+      return rows.map(megatrendRowToListItem)
     },
     async getPainDetail(id) {
-      const row = db.prepare(`SELECT * FROM pain_registry WHERE pain_id = ?`).get(id) as PainRegistryRow | undefined
-      return row ? rowToDetailItem(row) : null
+      const row = db.prepare(`SELECT * FROM megatrends WHERE id = ?`).get(id) as MegatrendRow | undefined
+      return row ? megatrendRowToDetailItem(row) : null
     },
     async getPersonalMatches() {
       // Personal matching will be implemented in a later chunk
@@ -416,7 +414,7 @@ function createDbAdapter(): PainRegistryAdapter {
 }
 
 // ── Active adapter ─────────────────────────────────────────────────────────────
-// Switch to real DB once pain_registry has data:
+// Once `npm run pipeline:seed-megatrends` has run, switch to real DB:
 // export const painAdapter: PainRegistryAdapter = createDbAdapter()
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

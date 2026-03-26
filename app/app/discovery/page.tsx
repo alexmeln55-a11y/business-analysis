@@ -8,7 +8,7 @@ import {
 } from '@/lib/pain-registry'
 
 const STATUS_LABEL: Record<string, string> = {
-  new: 'Новая', validated: 'Подтверждена', high_pain: 'Высокая боль', archived: 'Архив',
+  new: 'Новый', validated: 'Подтверждён', high_pain: 'Быстрый рост', archived: 'Архив',
 }
 const STATUS_COLOR: Record<string, string> = {
   new: '#9B8A7A', validated: '#6BA87A', high_pain: '#C47A3A', archived: '#6B5D52',
@@ -25,7 +25,13 @@ const FIT_BG: Record<FitLabel, string> = {
   high: 'rgba(107,168,122,0.12)', medium: 'rgba(196,122,58,0.14)', low: 'rgba(155,138,122,0.10)',
 }
 
-const SOURCE_ABBR: Record<string, string> = { telegram: 'TG', vk: 'VK', forum: 'FR', otzovik: 'OZ' }
+const SOURCE_ABBR: Record<string, string> = {
+  telegram: 'TG', vk: 'VK', forum: 'FR', otzovik: 'OZ',
+  минцифры: 'МЦ', cnews: 'CN', skolkovo: 'SK', rbc: 'RBC',
+  фнс: 'ФНС', тинькофф: 'TCS', hh: 'HH', skillbox: 'SB',
+  positive_tech: 'PT', bi_zone: 'BZ', data_insight: 'DI', vc_ru: 'VC',
+  mckinsey_health: 'MC', раэк: 'РЭ', сдэк: 'СД', superjob: 'SJ',
+}
 const PAGE_SIZE = 10
 
 // ── Small shared components ───────────────────────────────────────────────────
@@ -149,10 +155,10 @@ function DetailDrawer({
         }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             {[
-              ['Боль рынка', item.market_pain_score],
-              ['Частота', item.score_breakdown.frequency],
-              ['Интенсивность', item.score_breakdown.intensity],
-              ['WTP', item.score_breakdown.willingness_to_pay],
+              ['Рейтинг тренда', item.market_pain_score],
+              ['Структурная сила', item.score_breakdown.structural_strength],
+              ['Спрос', item.score_breakdown.demand_signal],
+              ['Устойчивость', item.score_breakdown.longevity],
             ].map(([label, val]) => (
               <div key={label as string}>
                 <div style={{ fontSize: '10px', color: '#6B5D52', marginBottom: '4px' }}>{label}</div>
@@ -167,10 +173,10 @@ function DetailDrawer({
           {item.full_description}
         </p>
 
-        <Field label="ДЛЯ КОГО" value={item.target_who} />
-        <Field label="КОНТЕКСТ" value={item.context} />
-        <Field label="КАК СЕЙЧАС РЕШАЮТ" value={item.workaround} />
-        <Field label="ПОСЛЕДСТВИЯ" value={item.consequences} />
+        <Field label="ГОРИЗОНТ И ОХВАТ" value={item.target_who} />
+        <Field label="ПОЧЕМУ РАСТЁТ" value={item.context} />
+        {item.workaround && <Field label="ТЕКУЩИЕ РЕШЕНИЯ" value={item.workaround} />}
+        {item.consequences && <Field label="ВОЗМОЖНОСТИ" value={item.consequences} />}
 
         {/* Evidence */}
         <div style={{
@@ -178,14 +184,14 @@ function DetailDrawer({
           border: '1px solid rgba(244,237,227,0.06)',
         }}>
           <div style={{ fontSize: '10px', color: '#6B5D52', letterSpacing: '0.07em', marginBottom: '6px' }}>
-            ДОКАЗАТЕЛЬНАЯ БАЗА
+            ИСТОЧНИКИ
           </div>
           <div style={{ fontSize: '13px', color: '#9B8A7A', lineHeight: 1.6, marginBottom: '10px' }}>
             {item.evidence_summary}
           </div>
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             <span style={{ fontSize: '12px', color: '#B57A56', fontWeight: 600 }}>
-              {item.evidence_count} сигналов
+              {item.evidence_count} ист.
             </span>
             <SourceBadges sources={item.source_types} />
           </div>
@@ -275,7 +281,7 @@ function PainRow({ item, selected, onClick }: {
           <div style={{ fontSize: '17px', fontWeight: 700, color: '#B57A56', lineHeight: 1 }}>
             {item.market_pain_score.toFixed(1)}
           </div>
-          <div style={{ fontSize: '9px', color: '#6B5D52', marginTop: '1px' }}>боль</div>
+          <div style={{ fontSize: '9px', color: '#6B5D52', marginTop: '1px' }}>рейтинг</div>
         </div>
       </div>
 
@@ -285,7 +291,7 @@ function PainRow({ item, selected, onClick }: {
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
         <StatusBadge status={item.status} />
-        <span style={{ fontSize: '11px', color: '#6B5D52' }}>{item.evidence_count} сигн.</span>
+        <span style={{ fontSize: '11px', color: '#6B5D52' }}>{item.evidence_count} ист.</span>
         <SourceBadges sources={item.source_types} />
         <span style={{ fontSize: '10px', color: '#6B5D52', marginLeft: 'auto' }}>
           {new Date(item.last_seen_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
@@ -326,7 +332,7 @@ function MatchRow({ item, selected, onClick }: {
         {item.fit_reason_short}
       </div>
       <div style={{ fontSize: '10px', color: '#6B5D52' }}>
-        fit {item.fit_score.toFixed(1)} · боль {item.market_pain_score.toFixed(1)}
+        fit {item.fit_score.toFixed(1)} · тренд {item.market_pain_score.toFixed(1)}
       </div>
     </div>
   )
@@ -431,7 +437,7 @@ function RequestPageContent() {
   if (loading) {
     return (
       <div style={{ padding: '60px 0', textAlign: 'center' }}>
-        <div style={{ fontSize: '14px', color: '#6B5D52' }}>Загружаем реестр болей...</div>
+        <div style={{ fontSize: '14px', color: '#6B5D52' }}>Загружаем мегатренды...</div>
       </div>
     )
   }
@@ -455,7 +461,7 @@ function RequestPageContent() {
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
         <div style={{ fontSize: '11px', color: '#9B8A7A', letterSpacing: '0.07em', marginBottom: '8px' }}>
-          РЕЕСТР БОЛЕЙ РЫНКА
+          МЕГАТРЕНДЫ РЫНКА
         </div>
         <h1 style={{ fontSize: '26px', fontWeight: 700, color: '#F4EDE3', margin: 0 }}>
           Запрос
@@ -504,9 +510,9 @@ function RequestPageContent() {
           }}
         >
           <option value="">Все статусы</option>
-          <option value="new">Новая</option>
-          <option value="validated">Подтверждена</option>
-          <option value="high_pain">Высокая боль</option>
+          <option value="new">Новый</option>
+          <option value="validated">Подтверждён</option>
+          <option value="high_pain">Быстрый рост</option>
         </select>
 
         <select
@@ -518,8 +524,8 @@ function RequestPageContent() {
             fontSize: '13px', fontFamily: 'inherit', cursor: 'pointer', outline: 'none',
           }}
         >
-          <option value="score">По силе боли</option>
-          <option value="evidence">По числу сигналов</option>
+          <option value="score">По рейтингу тренда</option>
+          <option value="evidence">По числу источников</option>
           <option value="fresh">По свежести</option>
         </select>
 
@@ -544,7 +550,7 @@ function RequestPageContent() {
         <div>
           {/* Count */}
           <div style={{ fontSize: '12px', color: '#6B5D52', marginBottom: '10px' }}>
-            {total === allItems.length ? `${total} болей` : `${total} из ${allItems.length}`}
+            {total === allItems.length ? `${total} трендов` : `${total} из ${allItems.length}`}
           </div>
 
           {paginated.length === 0 ? (

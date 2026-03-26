@@ -36,6 +36,29 @@ export interface CandidatePainRow {
   created_at: string
 }
 
+export interface MegatrendRow {
+  id: string
+  title: string
+  summary: string
+  why_growing: string | null
+  time_horizon: string | null
+  geography: string | null
+  vertical: string
+  source_name: string | null
+  source_url: string | null
+  structural_strength: number
+  demand_signal: number
+  longevity: number
+  geographic_spread: number
+  clarity_of_need: number
+  hype_risk: number
+  total_score: number
+  status: string
+  canonical_key: string | null
+  created_at: string
+  updated_at: string
+}
+
 export interface PainRegistryRow {
   pain_id: string
   topic_id: string
