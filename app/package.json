@@ -17,12 +17,14 @@
     "pipeline:seed-megatrends": "tsx pipeline/scripts/seed-megatrends.ts",
     "pipeline:seed-megatrend-sources": "tsx pipeline/scripts/seed-megatrend-sources.ts",
     "pipeline:ingest-megatrends": "tsx pipeline/scripts/ingest-megatrends.ts",
+    "pipeline:extract-megatrends": "tsx pipeline/scripts/extract-megatrends.ts",
     "pipeline:normalize-megatrends": "tsx pipeline/scripts/normalize-megatrends.ts"
   },
   "dependencies": {
+    "better-sqlite3": "^12.8.0",
     "dotenv": "^16.0.0",
-    "openai": "^4.0.0",
     "next": "^15.0.0",
+    "openai": "^4.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "telegram": "^2.25.0"

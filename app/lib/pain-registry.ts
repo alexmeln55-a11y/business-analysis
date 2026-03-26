@@ -338,17 +338,38 @@ function toPainListItem(raw: PainDetailItem): PainListItem {
 }
 
 // ── Active adapter ─────────────────────────────────────────────────────────────
-// DB adapter lives in lib/pain-registry-db.ts (server-only).
-// Switch there once pipeline:seed-megatrends has run.
+// Reads from /api/megatrends (server-side DB via API route).
+// Falls back to mock data if API is unavailable.
 
 export const painAdapter: PainRegistryAdapter = {
   async listPains() {
-    return MOCK_REGISTRY.map(toPainListItem)
+    try {
+      const res = await fetch('/api/megatrends', { cache: 'no-store' })
+      if (!res.ok) throw new Error('api error')
+      const data = await res.json()
+      return data.items as PainListItem[]
+    } catch {
+      return MOCK_REGISTRY.map(toPainListItem)
+    }
   },
   async getPainDetail(id) {
-    return MOCK_REGISTRY.find(p => p.pain_id === id) ?? null
+    try {
+      const res = await fetch(`/api/megatrends/${id}`, { cache: 'no-store' })
+      if (!res.ok) throw new Error('api error')
+      const data = await res.json()
+      return data.item as PainDetailItem
+    } catch {
+      return MOCK_REGISTRY.find(p => p.pain_id === id) ?? null
+    }
   },
   async getPersonalMatches() {
-    return MOCK_PERSONAL_MATCHES
+    try {
+      const res = await fetch('/api/megatrends', { cache: 'no-store' })
+      if (!res.ok) throw new Error('api error')
+      const data = await res.json()
+      return data.matches as PersonalPainMatchItem[]
+    } catch {
+      return MOCK_PERSONAL_MATCHES
+    }
   },
 }
