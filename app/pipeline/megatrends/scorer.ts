@@ -13,13 +13,20 @@ export interface MegatrendScoreInput {
 
 export function scoreMegatrend(input: MegatrendScoreInput): number {
   const { structural_strength, demand_signal, longevity, geographic_spread, clarity_of_need, hype_risk } = input
-  const positive = (structural_strength * 0.25) +
-                   (demand_signal       * 0.20) +
-                   (longevity           * 0.20) +
-                   (geographic_spread   * 0.15) +
-                   (clarity_of_need     * 0.20)
-  // hype_risk on 1–10: penalty = (hype_risk - 5) * 0.05, max ±0.25
-  const hype_penalty = (hype_risk - 5) * 0.05
-  const raw = positive - hype_penalty
+  // All fields on 1–10 scale.
+  // hype_risk is a direct penalty: higher hype = lower score.
+  const raw = (structural_strength * 0.25) +
+              (demand_signal       * 0.20) +
+              (longevity           * 0.20) +
+              (geographic_spread   * 0.15) +
+              (clarity_of_need     * 0.20) -
+              (hype_risk           * 0.15)
   return Math.round(Math.min(10, Math.max(0, raw)) * 10) / 10
+}
+
+/** Assign status based on totalScore (1–10 scale). */
+export function statusFromScore(score: number): 'shortlist' | 'watchlist' | 'archive' {
+  if (score >= 7.0) return 'shortlist'
+  if (score >= 5.5) return 'watchlist'
+  return 'archive'
 }

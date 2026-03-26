@@ -37,7 +37,7 @@ function rowToDetailItem(row: MegatrendRow): PainDetailItem {
     ...rowToListItem(row),
     full_description: row.why_growing ?? row.summary,
     target_who: [row.time_horizon, row.geography].filter(Boolean).join(' · '),
-    context: `Вертикаль: ${row.vertical}. ${row.summary}`,
+    context: row.why_growing ?? '',
     workaround: '',
     consequences: '',
     score_breakdown: {
@@ -61,9 +61,13 @@ export function createMegatrendDbAdapter(): PainRegistryAdapter {
 
   return {
     async listPains() {
-      const rows = db.prepare(
-        `SELECT * FROM megatrends WHERE status != 'archived' ORDER BY total_score DESC`
-      ).all() as MegatrendRow[]
+      const rows = db.prepare(`
+        SELECT * FROM megatrends
+        WHERE status NOT IN ('archived', 'archived_dup')
+        ORDER BY
+          CASE status WHEN 'shortlist' THEN 0 WHEN 'watchlist' THEN 1 ELSE 2 END ASC,
+          total_score DESC
+      `).all() as MegatrendRow[]
       return rows.map(rowToListItem)
     },
     async getPainDetail(id: string) {

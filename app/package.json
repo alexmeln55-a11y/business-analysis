@@ -18,7 +18,8 @@
     "pipeline:seed-megatrend-sources": "tsx pipeline/scripts/seed-megatrend-sources.ts",
     "pipeline:ingest-megatrends": "tsx pipeline/scripts/ingest-megatrends.ts",
     "pipeline:extract-megatrends": "tsx pipeline/scripts/extract-megatrends.ts",
-    "pipeline:normalize-megatrends": "tsx pipeline/scripts/normalize-megatrends.ts"
+    "pipeline:normalize-megatrends": "tsx pipeline/scripts/normalize-megatrends.ts",
+    "pipeline:score-megatrends": "tsx pipeline/scripts/score-megatrends.ts"
   },
   "dependencies": {
     "better-sqlite3": "^12.8.0",

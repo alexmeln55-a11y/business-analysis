@@ -1,6 +1,6 @@
 // ── UI Types (decoupled from raw backend/pipeline entities) ──────────────────
 
-export type PainStatus = 'new' | 'validated' | 'high_pain' | 'archived'
+export type PainStatus = 'new' | 'validated' | 'high_pain' | 'archived' | 'shortlist' | 'watchlist' | 'archive'
 export type FitLabel = 'high' | 'medium' | 'low'
 
 /** Normalised item for list display (works for megatrends and pains) */

@@ -8,12 +8,15 @@ import {
 } from '@/lib/pain-registry'
 
 const STATUS_LABEL: Record<string, string> = {
+  shortlist: 'Шортлист', watchlist: 'Наблюдение', archive: 'Архив',
   new: 'Новый', validated: 'Подтверждён', high_pain: 'Быстрый рост', archived: 'Архив',
 }
 const STATUS_COLOR: Record<string, string> = {
+  shortlist: '#B57A56', watchlist: '#6BA87A', archive: '#6B5D52',
   new: '#9B8A7A', validated: '#6BA87A', high_pain: '#C47A3A', archived: '#6B5D52',
 }
 const STATUS_BG: Record<string, string> = {
+  shortlist: 'rgba(181,122,86,0.14)', watchlist: 'rgba(107,168,122,0.12)', archive: 'rgba(107,93,82,0.10)',
   new: 'rgba(155,138,122,0.10)', validated: 'rgba(107,168,122,0.12)',
   high_pain: 'rgba(196,122,58,0.14)', archived: 'rgba(107,93,82,0.10)',
 }
@@ -420,9 +423,13 @@ function RequestPageContent() {
     return true
   })
 
+  const STATUS_ORDER: Record<string, number> = { shortlist: 0, watchlist: 1, archive: 2, new: 3, validated: 1, high_pain: 0, archived: 4 }
   const sorted = [...filtered].sort((a, b) => {
     if (sort === 'evidence') return b.evidence_count - a.evidence_count
     if (sort === 'fresh') return new Date(b.last_seen_at).getTime() - new Date(a.last_seen_at).getTime()
+    // Default: shortlist first, then by score
+    const so = (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3)
+    if (so !== 0) return so
     return b.market_pain_score - a.market_pain_score
   })
 
@@ -510,9 +517,9 @@ function RequestPageContent() {
           }}
         >
           <option value="">Все статусы</option>
-          <option value="new">Новый</option>
-          <option value="validated">Подтверждён</option>
-          <option value="high_pain">Быстрый рост</option>
+          <option value="shortlist">Шортлист</option>
+          <option value="watchlist">Наблюдение</option>
+          <option value="archive">Архив</option>
         </select>
 
         <select
@@ -524,7 +531,7 @@ function RequestPageContent() {
             fontSize: '13px', fontFamily: 'inherit', cursor: 'pointer', outline: 'none',
           }}
         >
-          <option value="score">По рейтингу тренда</option>
+          <option value="score">Шортлист → по рейтингу</option>
           <option value="evidence">По числу источников</option>
           <option value="fresh">По свежести</option>
         </select>
