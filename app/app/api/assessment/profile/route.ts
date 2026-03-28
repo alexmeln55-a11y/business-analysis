@@ -11,10 +11,6 @@ export interface AISynthesis {
   paragraph4: string  // куда не стоит идти
 }
 
-// ── OpenAI client ──────────────────────────────────────────────
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-
 // ── Convert rule-based profile to prompt data ──────────────────
 // Sources stripped from AI-visible text to prevent block terminology in output.
 // Sources are kept in FounderProfile for server-side validation only.
@@ -134,6 +130,7 @@ function validateAndFix(raw: unknown, profile: FounderProfile): AISynthesis | nu
 // ── Handler ────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   try {
     const body = await req.json()
     const profile = body.profile as FounderProfile

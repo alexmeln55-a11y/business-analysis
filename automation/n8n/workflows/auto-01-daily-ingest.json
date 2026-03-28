@@ -1,0 +1,107 @@
+{
+  "id": "auto-01-daily-ingest",
+  "name": "Auto-01: Daily Pipeline Ingest",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "name": "Daily 08:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "command": "=`cd ${$vars.BUSINESS_AI_APP_DIR} && npm run pipeline:ingest-megatrends 2>&1`"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000002",
+      "name": "01 Ingest Sources",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [460, 300],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "command": "=`cd ${$vars.BUSINESS_AI_APP_DIR} && npm run pipeline:extract-megatrends 2>&1`"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000003",
+      "name": "02 Extract Megatrends",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [680, 300],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "command": "=`cd ${$vars.BUSINESS_AI_APP_DIR} && npm run pipeline:dedup-megatrends 2>&1`"
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000004",
+      "name": "03 Dedup & Topic Critic",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "continueOnFail": true
+    }
+  ],
+  "connections": {
+    "Daily 08:00": {
+      "main": [
+        [
+          {
+            "node": "01 Ingest Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "01 Ingest Sources": {
+      "main": [
+        [
+          {
+            "node": "02 Extract Megatrends",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "02 Extract Megatrends": {
+      "main": [
+        [
+          {
+            "node": "03 Dedup & Topic Critic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "meta": {
+    "purpose": "Ежедневный запуск pipeline: ingest → extract → dedup. Результат по каждому источнику пишется в source_runs таблицу.",
+    "trigger": "cron 0 8 * * * (08:00 UTC каждый день)",
+    "owner": "pipeline",
+    "inputs": "sources table (active sources with RSS/webpage URLs)",
+    "outputs": "raw_signals, megatrends, source_runs",
+    "retry_policy": "continueOnFail=true на каждом шаге — ошибка одного источника не останавливает остальные",
+    "chunk": "Auto-01"
+  }
+}

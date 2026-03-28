@@ -8,9 +8,11 @@ dotenv.config({ path: path.join(process.cwd(), '..', '.env') })
 dotenv.config({ path: path.join(process.cwd(), '.env') })
 dotenv.config({ path: path.join(process.cwd(), '.env.local') })
 
+import { setupDb } from '../db/setup'
 import { runMegatrendIngestion } from '../megatrends/ingestion'
 
 async function main() {
+  setupDb()
   console.log('=== Megatrend ingestion ===\n')
   await runMegatrendIngestion()
   console.log('\n=== Done ===')

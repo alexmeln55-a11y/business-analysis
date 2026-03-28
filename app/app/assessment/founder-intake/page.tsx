@@ -542,7 +542,7 @@ export default function FounderIntakePage() {
         <div style={{ display: 'flex', gap: '12px', marginTop: '8px', alignItems: 'center' }}>
 
           {/* Back */}
-          {currentIdx > 0 && !isLoading && phase !== 'clarifying' && phase !== 'clarifying_loading' && (
+          {currentIdx > 0 && !isLoading && phase !== 'clarifying' && (
             <button onClick={handleBack} style={{ background: 'transparent', border: '1px solid #2A2018', color: '#9B8A7A', borderRadius: '8px', padding: '12px 16px', fontSize: '13px', cursor: 'pointer' }}>
               ← Назад
             </button>

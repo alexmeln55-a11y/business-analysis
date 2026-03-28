@@ -55,14 +55,14 @@ async function main() {
       const result = await extractMegatrend(text, sourceName, signal.url ?? undefined)
       markProcessed.run(signal.signal_id)
 
-      if (result.inserted) {
-        console.log(`→ ✓ inserted ${result.id}`)
+      if (result.inserted && result.isNewMegatrend) {
+        console.log(`→ ✓ inserted ${result.megatrendId}`)
         inserted++
-      } else if (result.reason === 'merged_into_existing') {
-        console.log(`→ ⟳ merged into ${result.id}`)
+      } else if (result.inserted && !result.isNewMegatrend) {
+        console.log(`→ ⟳ merged into ${result.megatrendId}`)
         merged++
       } else {
-        console.log(`→ — discarded`)
+        console.log(`→ — discarded (${result.reason ?? 'unknown'})`)
         discarded++
       }
     } catch (err) {
@@ -75,6 +75,21 @@ async function main() {
   }
 
   console.log(`\n=== Done: ${inserted} inserted, ${merged} merged, ${discarded} discarded ===`)
+
+  // Show current status distribution so it's clear what's ready for dedup/confirm
+  const stats = db.prepare(`
+    SELECT confirmation_status, COUNT(*) as cnt
+    FROM megatrends
+    WHERE status NOT IN ('archived', 'archived_dup')
+    GROUP BY confirmation_status
+  `).all() as Array<{ confirmation_status: string; cnt: number }>
+  if (stats.length) {
+    console.log('\nCurrent megatrend statuses (run dedup-megatrends next):')
+    for (const s of stats) {
+      console.log(`  ${s.confirmation_status.padEnd(16)} ${s.cnt}`)
+    }
+  }
+
   process.exit(0)
 }
 

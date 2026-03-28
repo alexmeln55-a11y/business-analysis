@@ -272,13 +272,10 @@ reason_code — обязательное поле:
 {"action": "resolve", "finalClarifiedAnswer": "...", "finalTag": "...", "confidence": "high|medium|low", "reason_code": "..."}`
 }
 
-// ── Singleton OpenAI client ────────────────────────────────────
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-
 // ── Route handler ─────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   try {
     const body = await req.json()
 

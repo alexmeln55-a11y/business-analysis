@@ -20,7 +20,12 @@
     "pipeline:extract-megatrends": "tsx pipeline/scripts/extract-megatrends.ts",
     "pipeline:normalize-megatrends": "tsx pipeline/scripts/normalize-megatrends.ts",
     "pipeline:score-megatrends": "tsx pipeline/scripts/score-megatrends.ts",
-    "pipeline:rescore-megatrends": "tsx pipeline/scripts/rescore-megatrends.ts"
+    "pipeline:rescore-megatrends": "tsx pipeline/scripts/rescore-megatrends.ts",
+    "pipeline:migrate-01a": "tsx pipeline/scripts/migrate-01a.ts",
+    "pipeline:dedup-megatrends": "tsx pipeline/scripts/dedup-megatrends.ts",
+    "pipeline:confirm-megatrends": "tsx pipeline/scripts/confirm-megatrends.ts",
+    "pipeline:generate-ideas": "tsx pipeline/scripts/generate-ideas.ts",
+    "pipeline:clear-legacy-data": "tsx pipeline/scripts/clear-legacy-data.ts"
   },
   "dependencies": {
     "better-sqlite3": "^12.8.0",
@@ -32,6 +37,7 @@
     "telegram": "^2.25.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

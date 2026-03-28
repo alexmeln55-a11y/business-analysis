@@ -5,8 +5,26 @@ export interface SourceRow {
   is_active: number
   config: string      // JSON
   last_cursor: string | null
+  // Auto-01
+  last_success_at: string | null
+  status: 'active' | 'disabled' | 'error' | 'degraded'
+  // Auto-02
+  consecutive_errors: number
   added_at: string
   updated_at: string
+}
+
+// Auto-01: one row per source per daily run
+export interface SourceRunRow {
+  id: string
+  source_id: string
+  started_at: string
+  finished_at: string | null
+  status: 'running' | 'success' | 'error' | 'skipped'
+  total_found: number
+  new_found: number
+  duplicates_found: number
+  error_message: string | null
 }
 
 export interface RawSignalRow {
@@ -36,6 +54,11 @@ export interface CandidatePainRow {
   created_at: string
 }
 
+// Shifts-01: signal → topic → confirmed_shift
+// 'candidate' and 'confirmed' kept for DB backward compat during migration period
+export type ConfirmationStatus = 'signal' | 'topic' | 'confirmed_shift' | 'candidate' | 'confirmed'
+export type Priority = 'high' | 'medium' | 'low'
+
 export interface MegatrendRow {
   id: string
   title: string
@@ -61,8 +84,57 @@ export interface MegatrendRow {
   hype_risk_reason: string | null
   status: string
   canonical_key: string | null
+  // Upgrade-01a
+  confirmation_status: ConfirmationStatus
+  // Upgrade-01b
+  priority: Priority
+  signals_count: number
+  sources_count: number
+  unique_sources_count: number
+  regions_count: number
+  first_seen_at: string | null
+  last_seen_at: string | null
+  active_days: number
+  // Pipeline-09: topic critic gate
+  topic_critic_verdict: 'approve' | 'reject' | null
+  topic_critic_reason: string | null
+  topic_critic_checked_at: string | null
+  // Pipeline-09b: confirmed critic gate
+  confirmed_critic_verdict: 'approve' | 'downgrade' | 'reject' | null
+  confirmed_critic_reason: string | null
+  confirmed_critic_checked_at: string | null
   created_at: string
   updated_at: string
+}
+
+// Upgrade-01a: atomic article-level signal before clustering into a megatrend
+export interface MegatrendSignalRow {
+  id: string
+  megatrend_id: string | null
+  title: string
+  summary: string
+  source_name: string
+  source_url: string | null
+  published_at: string
+  region: string | null
+  vertical: string | null
+  raw_text: string | null
+  confidence: number
+  created_at: string
+}
+
+// Shifts-01: business idea linked to a confirmed_shift topic
+export interface BusinessIdeaRow {
+  id: string
+  shift_id: string
+  title: string
+  summary: string
+  target_user: string | null
+  problem: string | null
+  why_now: string | null
+  simple_entry: string | null
+  confidence: number
+  created_at: string
 }
 
 export interface PainRegistryRow {

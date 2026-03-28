@@ -7,6 +7,33 @@ import {
   type PainListItem, type PainDetailItem, type PersonalPainMatchItem, type FitLabel,
 } from '@/lib/pain-registry'
 
+// Shifts-01: confirmation_status as primary badge
+const CONFIRM_LABEL: Record<string, string> = {
+  confirmed_shift: 'Подтверждённый сдвиг',
+  topic:           'Тема',
+  signal:          'Сигнал',
+  // legacy compat
+  confirmed: 'Подтверждённый сдвиг',
+  candidate: 'Тема',
+}
+const CONFIRM_COLOR: Record<string, string> = {
+  confirmed_shift: '#B57A56',
+  topic:           '#6BA87A',
+  signal:          '#9B8A7A',
+  confirmed:       '#B57A56',
+  candidate:       '#6BA87A',
+}
+const CONFIRM_BG: Record<string, string> = {
+  confirmed_shift: 'rgba(181,122,86,0.14)',
+  topic:           'rgba(107,168,122,0.12)',
+  signal:          'rgba(155,138,122,0.10)',
+  confirmed:       'rgba(181,122,86,0.14)',
+  candidate:       'rgba(107,168,122,0.12)',
+}
+
+const PRIORITY_LABEL: Record<string, string> = { high: 'HIGH', medium: 'MED', low: 'LOW' }
+const PRIORITY_COLOR: Record<string, string> = { high: '#B57A56', medium: '#9B8A7A', low: '#6B5D52' }
+
 const STATUS_LABEL: Record<string, string> = {
   shortlist: 'Приоритетные', watchlist: 'Наблюдение', archive: 'Слабые',
   new: 'Новый', validated: 'Подтверждён', high_pain: 'Быстрый рост', archived: 'Слабые',
@@ -70,15 +97,72 @@ function SourceBadges({ sources }: { sources: string[] }) {
   )
 }
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status, confirmationStatus, priority }: {
+  status: string
+  confirmationStatus?: string
+  priority?: string
+}) {
+  const cs = confirmationStatus ?? status
   return (
-    <span style={{
-      fontSize: '10px', fontWeight: 600, color: STATUS_COLOR[status] ?? '#9B8A7A',
-      backgroundColor: STATUS_BG[status] ?? 'rgba(155,138,122,0.10)',
-      padding: '3px 9px', borderRadius: '8px', whiteSpace: 'nowrap',
+    <div style={{ display: 'flex', gap: '5px', alignItems: 'center', flexWrap: 'wrap' }}>
+      <span style={{
+        fontSize: '10px', fontWeight: 600,
+        color: CONFIRM_COLOR[cs] ?? STATUS_COLOR[status] ?? '#9B8A7A',
+        backgroundColor: CONFIRM_BG[cs] ?? STATUS_BG[status] ?? 'rgba(155,138,122,0.10)',
+        padding: '3px 9px', borderRadius: '8px', whiteSpace: 'nowrap',
+      }}>
+        {CONFIRM_LABEL[cs] ?? STATUS_LABEL[status] ?? cs}
+      </span>
+      {priority && (
+        <span style={{
+          fontSize: '9px', fontWeight: 700,
+          color: PRIORITY_COLOR[priority] ?? '#6B5D52',
+          letterSpacing: '0.05em',
+        }}>
+          {PRIORITY_LABEL[priority] ?? priority}
+        </span>
+      )}
+    </div>
+  )
+}
+
+// ── Business idea card ────────────────────────────────────────────────────────
+
+function IdeaCard({ idea, index }: { idea: import('@/lib/pain-registry').BusinessIdea; index: number }) {
+  const Row = ({ label, value }: { label: string; value: string }) => (
+    <div style={{ marginBottom: '7px', lineHeight: 1.5 }}>
+      <span style={{ fontSize: '11px', color: '#6B5D52', fontWeight: 600, marginRight: '5px' }}>
+        {label}:
+      </span>
+      <span style={{ fontSize: '13px', color: '#CDBEAE' }}>{value}</span>
+    </div>
+  )
+
+  return (
+    <div style={{
+      backgroundColor: '#1C1916',
+      border: '1px solid rgba(181,122,86,0.14)',
+      borderRadius: '10px',
+      padding: '14px 16px',
     }}>
-      {STATUS_LABEL[status] ?? status}
-    </span>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '10px' }}>
+        <span style={{ fontSize: '10px', fontWeight: 700, color: '#B57A56', letterSpacing: '0.04em' }}>
+          ИДЕЯ {index + 1}
+        </span>
+      </div>
+      <div style={{ fontSize: '14px', fontWeight: 700, color: '#F4EDE3', marginBottom: '12px', lineHeight: 1.35 }}>
+        {idea.title}
+      </div>
+      <Row label="Кому" value={idea.target_user} />
+      <Row label="Проблема" value={idea.problem} />
+      <Row label="Что даём" value={idea.summary} />
+      <div style={{ marginTop: '2px', lineHeight: 1.5 }}>
+        <span style={{ fontSize: '11px', color: '#6B5D52', fontWeight: 600, marginRight: '5px' }}>
+          Как зарабатываем:
+        </span>
+        <span style={{ fontSize: '13px', color: '#CDBEAE' }}>{idea.how_to_earn}</span>
+      </div>
+    </div>
   )
 }
 
@@ -138,7 +222,7 @@ function DetailDrawer({
 
         {/* Badges */}
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap' }}>
-          <StatusBadge status={item.status} />
+          <StatusBadge status={item.status} confirmationStatus={item.confirmation_status} priority={item.priority} />
           {match && (
             <span style={{
               fontSize: '10px', fontWeight: 600, color: FIT_COLOR[match.fit_label],
@@ -150,6 +234,26 @@ function DetailDrawer({
           <span style={{ fontSize: '11px', color: '#6B5D52', marginLeft: 'auto' }}>
             {new Date(item.last_seen_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}
           </span>
+        </div>
+
+        {/* Shift metrics */}
+        <div style={{
+          display: 'flex', gap: '16px', flexWrap: 'wrap',
+          marginBottom: '16px', fontSize: '12px', color: '#6B5D52',
+        }}>
+          {item.first_seen_at && (
+            <span>
+              Первый сигнал: <span style={{ color: '#9B8A7A' }}>
+                {new Date(item.first_seen_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
+              </span>
+            </span>
+          )}
+          <span>
+            Источников: <span style={{ color: '#9B8A7A' }}>{item.unique_sources_count ?? item.evidence_count}</span>
+          </span>
+          {item.active_days && item.active_days > 1 && (
+            <span>Активна: <span style={{ color: '#9B8A7A' }}>{item.active_days} дн.</span></span>
+          )}
         </div>
 
         {/* Score breakdown */}
@@ -181,6 +285,34 @@ function DetailDrawer({
             </p>
           </div>
         )}
+
+        {/* Business ideas — always visible */}
+        <div style={{
+          marginBottom: '20px',
+          paddingTop: '4px',
+          borderTop: '1px solid rgba(244,237,227,0.06)',
+        }}>
+          <div style={{
+            fontSize: '10px', color: '#6B5D52', letterSpacing: '0.07em',
+            marginBottom: '12px', marginTop: '16px',
+          }}>
+            ЧТО МОЖНО СДЕЛАТЬ НА ЭТОМ ТРЕНДЕ
+          </div>
+          {item.ideas && item.ideas.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {item.ideas.slice(0, 3).map((idea, idx) => (
+                <IdeaCard key={idea.id} idea={idea} index={idx} />
+              ))}
+            </div>
+          ) : (
+            <div style={{
+              fontSize: '13px', color: '#6B5D52', lineHeight: 1.6,
+              padding: '12px 0',
+            }}>
+              Идеи появятся после подтверждения тренда
+            </div>
+          )}
+        </div>
 
         {item.context && item.context !== item.full_description &&
           item.context.slice(0, 60) !== (item.full_description ?? '').slice(0, 60) && (
@@ -236,6 +368,7 @@ function DetailDrawer({
           </div>
         )}
 
+
         {/* CTA */}
         <div style={{
           display: 'flex', gap: '8px', paddingTop: '16px',
@@ -252,12 +385,6 @@ function DetailDrawer({
             border: '1px solid rgba(244,237,227,0.10)', borderRadius: '10px', fontSize: '13px', cursor: 'pointer',
           }}>
             Скрыть
-          </button>
-          <button style={{
-            padding: '11px 14px', backgroundColor: 'transparent', color: '#9B8A7A',
-            border: '1px solid rgba(244,237,227,0.10)', borderRadius: '10px', fontSize: '13px', cursor: 'pointer',
-          }}>
-            → Возможности
           </button>
         </div>
       </div>
@@ -303,9 +430,13 @@ function PainRow({ item, selected, onClick }: {
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-        <StatusBadge status={item.status} />
-        <span style={{ fontSize: '11px', color: '#6B5D52' }}>{item.evidence_count} ист.</span>
-        <SourceBadges sources={item.source_types} />
+        <StatusBadge status={item.status} confirmationStatus={item.confirmation_status} priority={item.priority} />
+        <span style={{ fontSize: '11px', color: '#6B5D52' }}>
+          {item.unique_sources_count ?? item.evidence_count} ист.
+        </span>
+        {item.regions_count && item.regions_count > 1 && (
+          <span style={{ fontSize: '11px', color: '#6B5D52' }}>{item.regions_count} рег.</span>
+        )}
         <span style={{ fontSize: '10px', color: '#6B5D52', marginLeft: 'auto' }}>
           {new Date(item.last_seen_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })}
         </span>
@@ -430,7 +561,7 @@ function RequestPageContent() {
       if (!hit) return false
     }
     if (vertical && item.vertical !== vertical) return false
-    if (status && item.status !== status) return false
+    if (status && (item.confirmation_status ?? item.status) !== status) return false
     return true
   }), [allItems, q, vertical, status])
 
@@ -453,7 +584,7 @@ function RequestPageContent() {
   if (loading) {
     return (
       <div style={{ padding: '60px 0', textAlign: 'center' }}>
-        <div style={{ fontSize: '14px', color: '#6B5D52' }}>Загружаем мегатренды...</div>
+        <div style={{ fontSize: '14px', color: '#6B5D52' }}>Загружаем сдвиги...</div>
       </div>
     )
   }
@@ -477,10 +608,10 @@ function RequestPageContent() {
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
         <div style={{ fontSize: '11px', color: '#9B8A7A', letterSpacing: '0.07em', marginBottom: '8px' }}>
-          МЕГАТРЕНДЫ РЫНКА
+          РАННИЕ РЫНОЧНЫЕ СДВИГИ
         </div>
         <h1 style={{ fontSize: '26px', fontWeight: 700, color: '#F4EDE3', margin: 0 }}>
-          Запрос
+          Сдвиги
         </h1>
       </div>
 
@@ -525,10 +656,10 @@ function RequestPageContent() {
             fontSize: '13px', fontFamily: 'inherit', cursor: 'pointer', outline: 'none',
           }}
         >
-          <option value="">Все статусы</option>
-          <option value="shortlist">Приоритетные</option>
-          <option value="watchlist">Наблюдение</option>
-          <option value="archive">Слабые</option>
+          <option value="">Все типы</option>
+          <option value="confirmed_shift">Подтверждённые сдвиги</option>
+          <option value="topic">Темы</option>
+          <option value="signal">Сигналы</option>
         </select>
 
         <select
@@ -567,7 +698,7 @@ function RequestPageContent() {
         <div>
           {/* Count */}
           <div style={{ fontSize: '12px', color: '#6B5D52', marginBottom: '10px' }}>
-            {total === allItems.length ? `${total} трендов` : `${total} из ${allItems.length}`}
+            {total === allItems.length ? `${total} сдвигов` : `${total} из ${allItems.length}`}
           </div>
 
           {paginated.length === 0 ? (

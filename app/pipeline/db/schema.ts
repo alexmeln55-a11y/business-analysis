@@ -92,8 +92,64 @@ CREATE TABLE IF NOT EXISTS megatrends (
   hype_risk_reason           TEXT,
   status                     TEXT NOT NULL DEFAULT 'new',
   canonical_key              TEXT,
+  -- Upgrade-01a: confirmation layer (separate from scoring status)
+  confirmation_status        TEXT NOT NULL DEFAULT 'signal',
+  signals_count              INTEGER NOT NULL DEFAULT 1,
+  sources_count              INTEGER NOT NULL DEFAULT 1,
+  unique_sources_count       INTEGER NOT NULL DEFAULT 1,
+  regions_count              INTEGER NOT NULL DEFAULT 1,
+  first_seen_at              TEXT,
+  last_seen_at               TEXT,
+  active_days                INTEGER NOT NULL DEFAULT 1,
   created_at                 TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at                 TEXT NOT NULL DEFAULT (datetime('now'))
+);`
+
+// Signals: one row per article/publication (Upgrade-01a)
+// A signal is the atomic unit — it becomes a megatrend candidate only after accumulation.
+export const SCHEMA_MEGATREND_SIGNALS = `
+CREATE TABLE IF NOT EXISTS megatrend_signals (
+  id            TEXT PRIMARY KEY,
+  megatrend_id  TEXT,             -- linked after clustering (NULL until linked)
+  title         TEXT NOT NULL,
+  summary       TEXT NOT NULL,
+  source_name   TEXT NOT NULL,
+  source_url    TEXT,
+  published_at  TEXT NOT NULL,    -- original article date, used for freshness gate
+  region        TEXT,
+  vertical      TEXT,
+  raw_text      TEXT,
+  confidence    REAL NOT NULL DEFAULT 0.7,
+  created_at    TEXT NOT NULL DEFAULT (datetime('now'))
+);`
+
+// Business ideas — generated from confirmed_shift topics (Shifts-01)
+export const SCHEMA_BUSINESS_IDEAS = `
+CREATE TABLE IF NOT EXISTS business_ideas (
+  id           TEXT PRIMARY KEY,
+  shift_id     TEXT NOT NULL,    -- links to megatrends.id (confirmed_shift)
+  title        TEXT NOT NULL,
+  summary      TEXT NOT NULL,
+  target_user  TEXT,
+  problem      TEXT,
+  why_now      TEXT,
+  simple_entry TEXT,
+  confidence   REAL NOT NULL DEFAULT 0.7,
+  created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+);`
+
+// Auto-01: one row per source per daily run — tracks what was fetched and what changed
+export const SCHEMA_SOURCE_RUNS = `
+CREATE TABLE IF NOT EXISTS source_runs (
+  id               TEXT PRIMARY KEY,
+  source_id        TEXT NOT NULL,
+  started_at       TEXT NOT NULL DEFAULT (datetime('now')),
+  finished_at      TEXT,
+  status           TEXT NOT NULL DEFAULT 'running',  -- running | success | error | skipped
+  total_found      INTEGER NOT NULL DEFAULT 0,
+  new_found        INTEGER NOT NULL DEFAULT 0,
+  duplicates_found INTEGER NOT NULL DEFAULT 0,
+  error_message    TEXT
 );`
 
 export const ALL_SCHEMAS = [
@@ -102,4 +158,7 @@ export const ALL_SCHEMAS = [
   SCHEMA_CANDIDATE_PAINS,
   SCHEMA_PAIN_REGISTRY,
   SCHEMA_MEGATRENDS,
+  SCHEMA_MEGATREND_SIGNALS,
+  SCHEMA_BUSINESS_IDEAS,
+  SCHEMA_SOURCE_RUNS,
 ]
