@@ -17,6 +17,8 @@ data/*.db-shm
 data/*.db-wal
 app/data/*.db-shm
 app/data/*.db-wal
+# Pipeline working DB (local only — GitHub Actions restores from app/data/)
+data/opportunity.db
 
 # Telegram session
 .telegram_session
