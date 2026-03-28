@@ -637,12 +637,17 @@ const _detailCache = new Map<string, PainDetailItem>()
 
 function fetchAll(): Promise<{ items: PainListItem[]; matches: PersonalPainMatchItem[] }> {
   if (!_pendingFetch) {
-    _pendingFetch = fetch('/api/megatrends', { cache: 'no-store' })
-      .then(r => { if (!r.ok) throw new Error('api error'); return r.json() })
-      .then(data => ({ items: data.items as PainListItem[], matches: data.matches as PersonalPainMatchItem[] }))
-      .finally(() => { _pendingFetch = null })
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('fetch timeout')), 8000)
+    )
+    _pendingFetch = Promise.race([
+      fetch('/api/megatrends', { cache: 'no-store' })
+        .then(r => { if (!r.ok) throw new Error('api error'); return r.json() })
+        .then(data => ({ items: data.items as PainListItem[], matches: data.matches as PersonalPainMatchItem[] })),
+      timeout,
+    ]).finally(() => { _pendingFetch = null }) as Promise<{ items: PainListItem[]; matches: PersonalPainMatchItem[] }>
   }
-  return _pendingFetch
+  return _pendingFetch!
 }
 
 export const painAdapter: PainRegistryAdapter = {
