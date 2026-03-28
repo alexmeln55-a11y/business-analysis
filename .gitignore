@@ -12,10 +12,11 @@ coverage/
 Thumbs.db
 tsconfig.tsbuildinfo
 
-# Data
-data/*.db
+# Data (WAL/SHM excluded; .db files committed for Railway deploy)
 data/*.db-shm
 data/*.db-wal
+app/data/*.db-shm
+app/data/*.db-wal
 
 # Telegram session
 .telegram_session
