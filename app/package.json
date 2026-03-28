@@ -25,7 +25,8 @@
     "pipeline:dedup-megatrends": "tsx pipeline/scripts/dedup-megatrends.ts",
     "pipeline:confirm-megatrends": "tsx pipeline/scripts/confirm-megatrends.ts",
     "pipeline:generate-ideas": "tsx pipeline/scripts/generate-ideas.ts",
-    "pipeline:clear-legacy-data": "tsx pipeline/scripts/clear-legacy-data.ts"
+    "pipeline:clear-legacy-data": "tsx pipeline/scripts/clear-legacy-data.ts",
+    "deploy:db": "bash ../scripts/sync-db.sh"
   },
   "dependencies": {
     "better-sqlite3": "^12.8.0",
