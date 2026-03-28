@@ -14,18 +14,17 @@ if [ ! -f "$SRC" ]; then
   exit 1
 fi
 
-echo "Copying $SRC → $DST"
-cp "$SRC" "$DST"
-
-cd "$REPO_ROOT"
-
-if git diff --quiet app/data/opportunity.db 2>/dev/null && git ls-files --error-unmatch app/data/opportunity.db &>/dev/null; then
-  echo "No changes in opportunity.db — nothing to push."
+if [ -f "$DST" ] && cmp -s "$SRC" "$DST"; then
+  echo "DB не изменилась — деплой пропущен."
   exit 0
 fi
 
+echo "DB изменилась — копируем и деплоим..."
+cp "$SRC" "$DST"
+
+cd "$REPO_ROOT"
 git add app/data/opportunity.db
 git commit -m "Data: sync opportunity.db $(date '+%Y-%m-%d %H:%M')"
 git push
 
-echo "Done. Railway will redeploy automatically."
+echo "Готово. Railway задеплоит автоматически."
