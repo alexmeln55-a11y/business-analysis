@@ -10,6 +10,7 @@ coverage/
 *.log
 .DS_Store
 Thumbs.db
+tsconfig.tsbuildinfo
 
 # Data
 data/*.db

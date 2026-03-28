@@ -605,6 +605,12 @@ export interface PainRegistryAdapter {
 
 // ── Mapping helpers ───────────────────────────────────────────────────────────
 
+function deriveConfirmationStatus(status: PainStatus): ConfirmationStatus {
+  if (status === 'shortlist' || status === 'high_pain' || status === 'validated') return 'confirmed_shift'
+  if (status === 'watchlist') return 'topic'
+  return 'signal'
+}
+
 function toPainListItem(raw: PainDetailItem): PainListItem {
   return {
     pain_id: raw.pain_id,
@@ -618,6 +624,7 @@ function toPainListItem(raw: PainDetailItem): PainListItem {
     last_seen_at: raw.last_seen_at,
     status: raw.status,
     tags: raw.tags,
+    confirmation_status: raw.confirmation_status ?? deriveConfirmationStatus(raw.status),
   }
 }
 

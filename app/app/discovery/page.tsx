@@ -527,7 +527,6 @@ function RequestPageContent() {
   const q        = searchParams.get('q')         ?? ''
   const vertical = searchParams.get('vertical')  ?? ''
   const status   = searchParams.get('status')    ?? ''
-  const sort     = searchParams.get('sort')      ?? 'score'
   const page     = parseInt(searchParams.get('page') ?? '1', 10)
 
   const setParam = useCallback((key: string, value: string) => {
@@ -566,12 +565,10 @@ function RequestPageContent() {
   }), [allItems, q, vertical, status])
 
   const sorted = useMemo(() => [...filtered].sort((a, b) => {
-    if (sort === 'evidence') return b.evidence_count - a.evidence_count
-    if (sort === 'fresh') return new Date(b.last_seen_at).getTime() - new Date(a.last_seen_at).getTime()
     const so = (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3)
     if (so !== 0) return so
     return b.market_pain_score - a.market_pain_score
-  }), [filtered, sort])
+  }), [filtered])
 
   const total = sorted.length
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
@@ -606,11 +603,11 @@ function RequestPageContent() {
   return (
     <div>
       {/* Header */}
-      <div style={{ marginBottom: '24px' }}>
-        <div style={{ fontSize: '11px', color: '#9B8A7A', letterSpacing: '0.07em', marginBottom: '8px' }}>
+      <div style={{ marginBottom: '20px' }}>
+        <div style={{ fontSize: '11px', color: '#9B8A7A', letterSpacing: '0.07em', marginBottom: '6px' }}>
           РАННИЕ РЫНОЧНЫЕ СДВИГИ
         </div>
-        <h1 style={{ fontSize: '26px', fontWeight: 700, color: '#F4EDE3', margin: 0 }}>
+        <h1 style={{ fontSize: '22px', fontWeight: 700, color: '#F4EDE3', margin: 0 }}>
           Сдвиги
         </h1>
       </div>
@@ -660,20 +657,6 @@ function RequestPageContent() {
           <option value="confirmed_shift">Подтверждённые сдвиги</option>
           <option value="topic">Темы</option>
           <option value="signal">Сигналы</option>
-        </select>
-
-        <select
-          value={sort}
-          onChange={e => setParam('sort', e.target.value)}
-          style={{
-            backgroundColor: '#1A1613', border: '1px solid rgba(244,237,227,0.09)',
-            borderRadius: '10px', padding: '9px 12px', color: '#F4EDE3',
-            fontSize: '13px', fontFamily: 'inherit', cursor: 'pointer', outline: 'none',
-          }}
-        >
-          <option value="score">Шортлист → по рейтингу</option>
-          <option value="evidence">По числу источников</option>
-          <option value="fresh">По свежести</option>
         </select>
 
         <button
