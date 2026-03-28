@@ -39,16 +39,12 @@ jobs:
 
       - name: 1/6 Ingest
         working-directory: app
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: npm run pipeline:ingest-megatrends
 
       - name: 2/6 Extract
         working-directory: app
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: npm run pipeline:extract-megatrends
 
       - name: 3/6 Normalize
@@ -63,14 +59,12 @@ jobs:
         working-directory: app
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: npm run pipeline:dedup-megatrends
 
       - name: 6/6 Confirm
         working-directory: app
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: npm run pipeline:confirm-megatrends
 
       - name: Sync DB and push
