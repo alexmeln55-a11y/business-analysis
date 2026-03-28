@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-const BASE = 'https://lucid-trust-production-bc47.up.railway.app'
+const BASE = 'https://business-analysis-production.up.railway.app'
 
 test('главная страница загружается', async ({ page }) => {
   await page.goto(BASE)
