@@ -54,9 +54,10 @@ export interface CandidatePainRow {
   created_at: string
 }
 
-// Shifts-01: signal → topic → confirmed_shift
-// 'candidate' and 'confirmed' kept for DB backward compat during migration period
-export type ConfirmationStatus = 'signal' | 'topic' | 'confirmed_shift' | 'candidate' | 'confirmed'
+// Rules-01: exactly three active statuses.
+// Legacy DB values ('candidate', 'confirmed') are removed by the recalculate-statuses script.
+// The DB may still have legacy values until that script runs — use string where needed.
+export type ConfirmationStatus = 'signal' | 'topic' | 'confirmed_shift'
 export type Priority = 'high' | 'medium' | 'low'
 
 export interface MegatrendRow {
@@ -85,7 +86,7 @@ export interface MegatrendRow {
   status: string
   canonical_key: string | null
   // Upgrade-01a
-  confirmation_status: ConfirmationStatus
+  confirmation_status: ConfirmationStatus | 'candidate' | 'confirmed'  // DB may have legacy values pre-Rules-01
   // Upgrade-01b
   priority: Priority
   signals_count: number

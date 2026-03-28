@@ -1,6 +1,6 @@
 # Текущее состояние проекта
 
-Обновлено: 2026-03-24
+Обновлено: 2026-03-29
 
 ---
 
@@ -30,6 +30,9 @@
 | Assessment-07 | Финальный overview: buildFounderSummary, 4 синтетических секции (сильные стороны, риски, стиль запуска, fit), completion status, условный CTA | ✅ |
 | Assessment-01 | Блок 1 переделан в AI-распаковку: свободный текст, AI-уточнения (макс. 2 раунда), finalTag из whitelist, server-only prompts, защита от prompt injection | ✅ |
 | Assessment-08 | Rule-based ядро + AI-слой + единый профиль: FounderProfile (6 секций), buildFounderProfile, /api/assessment/profile (AI-синтез с валидацией), overview переписан (профиль → блоки), шкалы исправлены (max=5) | ✅ |
+| Pipeline-09 | Critic-gate для signal→topic: topic_critic_verdict/reason/checked_at, checkTopicPromotion(), critic-pass в dedup | ✅ |
+| Rules-01 | Единый источник правил статусов: status-rules.ts (3 активных статуса), recalculate-statuses.ts для DB rescore, сигнатуры signals.ts / semantic-checker.ts / confirm-megatrends.ts приведены к новым правилам | ✅ |
+| Sources-01 | Удалён Telegram-слой (auth/client/ingestion + скрипты), добавлено 20+ иностранных RSS-источников в seed, is_active флаг, default source_type=rss | ✅ |
 
 ---
 

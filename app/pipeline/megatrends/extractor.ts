@@ -9,7 +9,7 @@
 //   6. LLM scoring only on NEW megatrend creation (calibrated anchors)
 //
 // A single article CANNOT create a confirmed megatrend on its own.
-// confirmation_status progresses: signal → topic → candidate (→ confirmed in 01b)
+// confirmation_status progresses: signal → topic → confirmed_shift (Rules-01)
 
 import * as dotenv from 'dotenv'
 import path from 'path'

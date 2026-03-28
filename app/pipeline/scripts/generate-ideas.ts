@@ -28,10 +28,9 @@ async function main() {
 
   const db = getDb()
 
-  // Find confirmed_shifts (also support legacy 'confirmed' status)
   const shifts = db.prepare(`
     SELECT * FROM megatrends
-    WHERE confirmation_status IN ('confirmed_shift', 'confirmed')
+    WHERE confirmation_status = 'confirmed_shift'
     AND status NOT IN ('archived_dup')
     ORDER BY total_score DESC
   `).all() as MegatrendRow[]

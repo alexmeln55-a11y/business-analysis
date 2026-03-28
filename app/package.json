@@ -8,12 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "pipeline:setup": "tsx pipeline/scripts/setup-db.ts",
-    "pipeline:auth": "tsx pipeline/scripts/auth.ts",
-    "pipeline:add-source": "tsx pipeline/scripts/add-source.ts",
-    "pipeline:ingest": "tsx pipeline/scripts/ingest.ts",
     "pipeline:extract": "tsx pipeline/scripts/extract.ts",
     "pipeline:cluster": "tsx pipeline/scripts/cluster.ts",
-    "pipeline:run": "npm run pipeline:ingest && npm run pipeline:extract && npm run pipeline:cluster",
     "pipeline:seed-megatrends": "tsx pipeline/scripts/seed-megatrends.ts",
     "pipeline:seed-megatrend-sources": "tsx pipeline/scripts/seed-megatrend-sources.ts",
     "pipeline:ingest-megatrends": "tsx pipeline/scripts/ingest-megatrends.ts",
@@ -25,6 +21,7 @@
     "pipeline:dedup-megatrends": "tsx pipeline/scripts/dedup-megatrends.ts",
     "pipeline:confirm-megatrends": "tsx pipeline/scripts/confirm-megatrends.ts",
     "pipeline:generate-ideas": "tsx pipeline/scripts/generate-ideas.ts",
+    "pipeline:recalculate-statuses": "tsx pipeline/scripts/recalculate-statuses.ts",
     "pipeline:clear-legacy-data": "tsx pipeline/scripts/clear-legacy-data.ts",
     "deploy:db": "bash ../scripts/sync-db.sh"
   },
@@ -34,8 +31,7 @@
     "next": "^15.0.0",
     "openai": "^4.0.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "telegram": "^2.25.0"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",

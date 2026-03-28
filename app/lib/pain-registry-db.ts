@@ -54,10 +54,12 @@ function rowToListItem(row: ShiftRow): PainListItem {
   }
 }
 
+// Rules-01: three active statuses — signal | topic | confirmed_shift.
+// Legacy values ('confirmed', 'candidate') are remapped here as a safety net
+// until the recalculate-statuses script cleans the DB.
 function normaliseConfirmationStatus(raw: string | null): PainListItem['confirmation_status'] {
-  if (raw === 'confirmed' || raw === 'confirmed_shift') return 'confirmed_shift'
-  if (raw === 'topic') return 'topic'
-  if (raw === 'candidate') return 'topic'  // candidate → topic in Shifts-01
+  if (raw === 'confirmed_shift' || raw === 'confirmed') return 'confirmed_shift'
+  if (raw === 'topic' || raw === 'candidate') return 'topic'
   return 'signal'
 }
 
@@ -97,9 +99,7 @@ export function createMegatrendDbAdapter(): PainRegistryAdapter {
         ORDER BY
           CASE confirmation_status
             WHEN 'confirmed_shift' THEN 0
-            WHEN 'confirmed'       THEN 0
             WHEN 'topic'           THEN 1
-            WHEN 'candidate'       THEN 1
             ELSE 2
           END ASC,
           CASE priority

@@ -4,7 +4,7 @@ export const SCHEMA_SOURCES = `
 CREATE TABLE IF NOT EXISTS sources (
   source_id   TEXT PRIMARY KEY,
   source_name TEXT NOT NULL,
-  source_type TEXT NOT NULL DEFAULT 'telegram',
+  source_type TEXT NOT NULL DEFAULT 'rss',
   is_active   INTEGER NOT NULL DEFAULT 1,
   config      TEXT NOT NULL DEFAULT '{}',
   last_cursor TEXT,
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS pain_registry (
   consequences      TEXT,
   evidence_count    INTEGER NOT NULL DEFAULT 1,
   market_pain_score REAL NOT NULL DEFAULT 5.0,
-  source_types      TEXT NOT NULL DEFAULT '["telegram"]',
+  source_types      TEXT NOT NULL DEFAULT '["rss"]',
   last_seen_at      TEXT NOT NULL,
   status            TEXT NOT NULL DEFAULT 'new',
   tags              TEXT NOT NULL DEFAULT '[]',

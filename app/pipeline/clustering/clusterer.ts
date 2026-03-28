@@ -137,12 +137,12 @@ export function runClustering(): void {
         consequences: rep.consequence ?? null,
         evidence_count: evidenceCount,
         market_pain_score: score,
-        source_types: JSON.stringify(['telegram']),
+        source_types: JSON.stringify(['rss']),
         last_seen_at: lastDate?.last ?? new Date().toISOString(),
         status,
         tags: JSON.stringify([topicId]),
         score_breakdown: JSON.stringify({ evidence: evidenceCount, avg_confidence: avgConf }),
-        evidence_summary: `${evidenceCount} сигналов из Telegram`,
+        evidence_summary: `${evidenceCount} сигналов`,
       })
     }
 

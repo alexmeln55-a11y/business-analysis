@@ -44,13 +44,20 @@ async function main() {
 
   const db = getDb()
 
+  // Sources-01: numeric pre-filter for confirmed_shift candidacy.
+  // A topic must have 3+ independent sources AND 30+ active_days before the strict critic runs.
+  // Topics below this threshold stay as topics — they need more data, not LLM evaluation.
+  //
   // Pipeline-09: only process topics that passed the soft critic gate.
   // topic_critic_verdict='approve' = passed soft gate.
   // topic_critic_verdict IS NULL   = legacy rows (no critic data yet — include for compat).
   // topic_critic_verdict='reject'  = failed soft gate — skip (stays signal).
   const statusFilter = reCheckAll
-    ? `confirmation_status IN ('topic', 'confirmed_shift', 'candidate', 'confirmed')`
-    : `confirmation_status = 'topic' AND (topic_critic_verdict = 'approve' OR topic_critic_verdict IS NULL)`
+    ? `confirmation_status IN ('topic', 'confirmed_shift')`
+    : `confirmation_status = 'topic'
+       AND (topic_critic_verdict = 'approve' OR topic_critic_verdict IS NULL)
+       AND unique_sources_count >= 3
+       AND active_days >= 30`
 
   const rows = db.prepare(`
     SELECT * FROM megatrends
@@ -77,14 +84,24 @@ async function main() {
     WHERE id = ?
   `)
 
-  const counts = { confirmed_shift: 0, confirmed: 0, candidate: 0, topic: 0, signal: 0 }
+  const counts = { confirmed_shift: 0, topic: 0, signal: 0 }
   const priorities = { high: 0, medium: 0, low: 0 }
   let errors = 0
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i]
     try {
-      const result = await checkMegatrendSemantic(row.title, row.summary, row.why_growing)
+      // Count distinct calendar months from linked signals (Sources-01)
+      const monthsRow = db.prepare(`
+        SELECT COUNT(DISTINCT strftime('%Y-%m', published_at)) as active_months
+        FROM megatrend_signals WHERE megatrend_id = ?
+      `).get(row.id) as { active_months: number } | undefined
+      const activeMonths = monthsRow?.active_months ?? 1
+
+      const result = await checkMegatrendSemantic(
+        row.title, row.summary, row.why_growing,
+        row.unique_sources_count, row.active_days, activeMonths,
+      )
 
       const icon   = VERDICT_ICON[result.confirmation_status] ?? '?'
       const pri    = PRIORITY_COLOR[result.priority] ?? '?'
@@ -137,8 +154,6 @@ async function main() {
 
   console.log(`\n=== Results${dryRun ? ' (dry run — DB not updated)' : ''} ===`)
   console.log(`  confirmed_shift: ${counts.confirmed_shift}`)
-  console.log(`  confirmed:       ${counts.confirmed}`)
-  console.log(`  candidate:       ${counts.candidate}`)
   console.log(`  topic:           ${counts.topic}`)
   console.log(`  signal:          ${counts.signal}`)
   console.log(`  priority high/med/low: ${priorities.high}/${priorities.medium}/${priorities.low}`)

@@ -216,11 +216,13 @@ async function main() {
             { confirmation_status: string; unique_sources_count: number; signals_count: number } | undefined
 
           if (after) {
-            const reason = after.unique_sources_count >= 2
-              ? `${after.unique_sources_count} unique sources`
-              : after.signals_count >= 3
-                ? `${after.signals_count} signals (volume)`
-                : `${after.unique_sources_count} source, ${after.signals_count} signals → still signal`
+            const s = after.unique_sources_count
+            const d = (after as unknown as { active_days: number }).active_days ?? 0
+            const reason = s >= 3 && d >= 30
+              ? `${s} sources × ${d}d → path A`
+              : s >= 2 && d >= 7
+                ? `${s} sources × ${d}d → path B (critic pending)`
+                : `${s} source(s), ${d}d → still signal`
             console.log(`    → ${after.confirmation_status.toUpperCase().padEnd(8)} (${reason})`)
           }
         }

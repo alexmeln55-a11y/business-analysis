@@ -197,11 +197,21 @@ export async function checkMegatrendSemantic(
   title: string,
   summary: string,
   whyGrowing: string | null,
+  uniqueSourcesCount?: number,
+  activeDays?: number,
+  activeMonths?: number,
 ): Promise<SemanticCheckResult> {
+  const numericLines = [
+    uniqueSourcesCount != null ? `Уникальных источников: ${uniqueSourcesCount}` : '',
+    activeDays         != null ? `Дней активности: ${activeDays}` : '',
+    activeMonths       != null ? `Активных месяцев: ${activeMonths}` : '',
+  ].filter(Boolean)
+
   const context = [
     `Тема: ${title}`,
     `Суть: ${summary}`,
     whyGrowing ? `Почему растёт: ${whyGrowing}` : '',
+    ...numericLines,
   ].filter(Boolean).join('\n')
 
   // ── Step 1 ────────────────────────────────────────────────────────────────
