@@ -96,10 +96,10 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flex: 1, minWidth: '200px' }}>
-            <ScoreRow label="Market Pain" score={opp.pain_score} />
-            <ScoreRow label="Founder Fit" score={opp.founder_fit_score} />
-            <ScoreRow label="Foreign Patterns" score={opp.pattern_score} />
-            <ScoreRow label="Entry Feasibility" score={opp.entry_feasibility_score} />
+            <ScoreRow label="Боль рынка" score={opp.pain_score} />
+            <ScoreRow label="Подходимость" score={opp.founder_fit_score} />
+            <ScoreRow label="Зарубежные паттерны" score={opp.pattern_score} />
+            <ScoreRow label="Возможность входа" score={opp.entry_feasibility_score} />
           </div>
         </div>
         {detail && (
@@ -120,8 +120,8 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
       {/* 4 filters */}
       {detail && (
         <>
-          {/* 1. Market Pain */}
-          <Section title="Market Pain — Боль рынка">
+          {/* 1. Боль рынка */}
+          <Section title="Боль рынка">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <FilterRow label="Кто страдает" value={detail.pain_detail.who} />
               <FilterRow label="В чём боль" value={detail.pain_detail.what} />
@@ -142,8 +142,8 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
             </div>
           </Section>
 
-          {/* 2. Founder Fit */}
-          <Section title="Founder Fit — Подходимость основателя">
+          {/* 2. Подходимость основателя */}
+          <Section title="Подходимость основателя">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
                 <div style={{ fontSize: '12px', color: '#B57A56', marginBottom: '8px', letterSpacing: '0.04em' }}>
@@ -176,8 +176,8 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
             </div>
           </Section>
 
-          {/* 3. Foreign Patterns */}
-          <Section title="Foreign Patterns — Зарубежные паттерны">
+          {/* 3. Зарубежные паттерны */}
+          <Section title="Зарубежные паттерны">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {detail.foreign_patterns.map((p, i) => (
                 <PatternCard key={i} pattern={p} />
@@ -185,8 +185,8 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
             </div>
           </Section>
 
-          {/* 4. Entry Feasibility */}
-          <Section title="Entry Feasibility — Возможность входа">
+          {/* 4. Возможность входа */}
+          <Section title="Возможность входа">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <FilterRow label="Почему вход реалистичен" value={detail.entry_detail.why_feasible} />
               <FilterRow label="Почему выбран этот режим" value={detail.entry_detail.why_this_mode} />

@@ -31,7 +31,7 @@ const CONFIRM_BG: Record<string, string> = {
   candidate:       'rgba(107,168,122,0.12)',
 }
 
-const PRIORITY_LABEL: Record<string, string> = { high: 'HIGH', medium: 'MED', low: 'LOW' }
+const PRIORITY_LABEL: Record<string, string> = { high: 'ВЫС', medium: 'СРД', low: 'НИЗ' }
 const PRIORITY_COLOR: Record<string, string> = { high: '#B57A56', medium: '#9B8A7A', low: '#6B5D52' }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -48,7 +48,7 @@ const STATUS_BG: Record<string, string> = {
   high_pain: 'rgba(196,122,58,0.14)', archived: 'rgba(107,93,82,0.10)',
 }
 
-const FIT_LABEL: Record<FitLabel, string> = { high: 'Высокий fit', medium: 'Средний fit', low: 'Низкий fit' }
+const FIT_LABEL: Record<FitLabel, string> = { high: 'Высокое соответствие', medium: 'Среднее соответствие', low: 'Низкое соответствие' }
 const FIT_SHORT: Record<FitLabel, string> = { high: 'HIGH', medium: 'MED', low: 'LOW' }
 const FIT_COLOR: Record<FitLabel, string> = { high: '#6BA87A', medium: '#C47A3A', low: '#9B8A7A' }
 const FIT_BG: Record<FitLabel, string> = {
@@ -359,7 +359,7 @@ function DetailDrawer({
                 {FIT_LABEL[match.fit_label]}
               </span>
               <span style={{ fontSize: '12px', color: '#6B5D52' }}>
-                fit {match.fit_score.toFixed(1)}/10
+                соответствие {match.fit_score.toFixed(1)}/10
               </span>
             </div>
             <div style={{ fontSize: '13px', color: '#CDBEAE', lineHeight: 1.6 }}>
@@ -476,7 +476,7 @@ function MatchRow({ item, selected, onClick }: {
         {item.fit_reason_short}
       </div>
       <div style={{ fontSize: '10px', color: '#6B5D52' }}>
-        fit {item.fit_score.toFixed(1)} · тренд {item.market_pain_score.toFixed(1)}
+        соответствие {item.fit_score.toFixed(1)} · тренд {item.market_pain_score.toFixed(1)}
       </div>
     </div>
   )
